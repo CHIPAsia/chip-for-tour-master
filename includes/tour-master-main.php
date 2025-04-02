@@ -6,8 +6,8 @@ if ( ! function_exists( 'chip_pg_options' ) ) {
 		$options['chip'] = esc_html__( 'CHIP', 'tourmaster' );
 
 		return $options;
-		}
 	}
+}
 
 // init the script on payment page head
 add_filter( 'goodlayers_plugin_payment_option', 'chip_payment_option' );
@@ -15,29 +15,29 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 	function chip_payment_option( $options ) {
 
 		$options['chip'] = array(
-			'title' => esc_html__( 'CHIP', 'tourmaster' ),
+			'title'   => esc_html__( 'CHIP', 'tourmaster' ),
 			'options' => array(
-				'chip-secret-key' => array(
+				'chip-secret-key'    => array(
 					'title' => __( 'CHIP Secret Key', 'tourmaster' ),
-					'type' => 'text'
+					'type'  => 'text',
 				),
-				'chip-brand-id' => array(
+				'chip-brand-id'      => array(
 					'title' => __( 'CHIP Brand ID', 'tourmaster' ),
-					'type' => 'text'
+					'type'  => 'text',
 				),
 				'chip-currency-code' => array(
-					'title' => esc_html__( 'CHIP Currency Code', 'tourmaster' ),
-					'type' => 'text',
-					'default' => 'MYR'
+					'title'   => esc_html__( 'CHIP Currency Code', 'tourmaster' ),
+					'type'    => 'text',
+					'default' => 'MYR',
 				),
-			)
+			),
 		);
 
 		$options['payment-settings']['options']['payment-method']['options']['chip'] = esc_html__( 'CHIP', 'tourmaster' );
 
 		return $options;
-		}
 	}
+}
 
 // $current_payment_gateway = apply_filters( 'goodlayers_payment_get_option', '', 'credit-card-payment-gateway' );
 // if ( $current_payment_gateway == 'chip' ) {
@@ -59,29 +59,32 @@ if ( ! function_exists( 'chip_additional_payment_method' ) ) {
 	function chip_additional_payment_method( $methods ) {
 		$chip_button_atts = apply_filters( 'tourmaster_chip_button_atts', array() );
 
-		$ret = '';
+		$ret  = '';
 		$ret .= '<div class="tourmaster-online-payment-method tourmaster-payment-chip" >';
 		$ret .= '<img src="' . esc_attr( CTM_PLUGIN_URL ) . '/assets/paywithfpx.png" alt="chip" ';
 		if ( ! empty( $chip_button_atts['method'] ) && $chip_button_atts['method'] == 'ajax' ) {
 			$ret .= 'data-method="ajax" data-action="tourmaster_payment_selected" data-ajax="' . esc_url( TOURMASTER_AJAX_URL ) . '" ';
 			if ( ! empty( $chip_button_atts['type'] ) ) {
 				$ret .= 'data-action-type="' . esc_attr( $chip_button_atts['type'] ) . '" ';
-				}
 			}
+		}
 		$ret .= ' />';
 		$ret .= '</div>';
 
 		return $ret;
-		}
 	}
+}
 
 // add attribute for payment button
 add_filter( 'tourmaster_chip_button_atts', 'tourmaster_chip_button_atts' );
 if ( ! function_exists( 'tourmaster_chip_button_atts' ) ) {
 	function tourmaster_chip_button_atts( $attributes ) {
-		return array( 'method' => 'ajax', 'type' => 'chip' );
-		}
+		return array(
+			'method' => 'ajax',
+			'type'   => 'chip',
+		);
 	}
+}
 
 
 // payment form
@@ -97,7 +100,7 @@ if ( ! function_exists( 'tourmaster_chip_payment_form' ) ) {
 				<div class="payment-errors"></div>
 				<div class="goodlayers-payment-req-field"><?php esc_html_e( 'Please fill all required fields', 'tourmaster' ); ?>
 				</div>
-				<input type="hidden" name="tid" value="<?php echo esc_attr( $tid ) ?>" />
+				<input type="hidden" name="tid" value="<?php echo esc_attr( $tid ); ?>" />
 				<input class="goodlayers-payment-button submit" type="submit"
 					value="<?php esc_html_e( 'Submit Payment', 'tourmaster' ); ?>" />
 
@@ -127,9 +130,9 @@ if ( ! function_exists( 'tourmaster_chip_payment_form' ) ) {
 						},
 						success: function (data) {
 							if (data.status == 'success') {
-                // trigger the complete button
+				// trigger the complete button
 								// form.find('.goodlayers-payment-plugin-complete').trigger('click');
-                window.location.href = data.url;
+				window.location.href = data.url;
 							} else if (typeof (data.message) != 'undefined') {
 								form.find('.payment-errors').text(data.message).slideDown(200);
 							}
@@ -163,8 +166,8 @@ if ( ! function_exists( 'tourmaster_chip_payment_form' ) ) {
 		$ret = ob_get_contents();
 		ob_end_clean();
 		return $ret;
-		}
 	}
+}
 
 // ajax for payment submission
 if ( ! function_exists( 'chip_create_purchase' ) ) {
@@ -175,83 +178,92 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 		if ( ! empty( $_POST['tid'] ) ) {
 			$tid = preg_replace( '/[^0-9]/', '', $_POST['tid'] );
 			$tid = absint( $tid );
-			// prepare data
+			// prepare data.
 
 			$secret_key = trim( tourmaster_get_option( 'payment', 'chip-secret-key', '' ) );
-			$brand_id = trim( tourmaster_get_option( 'payment', 'chip-brand-id', '' ) );
+			$brand_id   = trim( tourmaster_get_option( 'payment', 'chip-brand-id', '' ) );
 
 			$booking_data = tourmaster_get_booking_data( array( 'id' => $_POST['tid'] ), array( 'single' => true ) );
 
 			$pricing_info = json_decode( $booking_data->pricing_info, true );
 			$billing_info = json_decode( $booking_data->billing_info, true );
 
-			$price = '';
-			if ( $pricing_info['deposit-price'] ) {
-				$price = $pricing_info['deposit-price'];
-				} else {
-				$price = $pricing_info['pay-amount'];
-				}
+			$price = $pricing_info['pay-amount'];
 
 			$currency_code = strtoupper( tourmaster_get_option( 'general', 'currency-code', 'USD' ) );
 
 			// apply currency
 			if ( ! empty( $booking_data->currency ) ) {
-				$currency = json_decode( $booking_data->currency, true );
+				$currency      = json_decode( $booking_data->currency, true );
 				$currency_code = strtoupper( $currency['currency-code'] );
-				$price = $price * floatval( $currency['exchange-rate'] );
-				}
+				$price         = $price * floatval( $currency['exchange-rate'] );
+			}
 
 			if ( empty( $price ) ) {
-				$ret['status'] = 'failed';
+				$ret['status']  = 'failed';
 				$ret['message'] = esc_html__( 'Cannot retrieve pricing data, please try again.', 'tourmaster' );
 
-				// Start the payment process
-				} else if ( $currency_code != 'MYR' ) {
+				// Start the payment process.
+			} elseif ( $currency_code != 'MYR' ) {
 				$ret['status'] = 'failed';
-				$ret['message'] = esc_html__( $currency_code . ' is unsupported currency.', 'tourmaster' );
-				} else {
-
+				// translators: $curency_code is currency code.
+				$ret['message'] = sprintf( esc_html__( '%1$s is unsupported currency.', 'tourmaster' ), $currency_code );
+			} else {
 				$price = round( floatval( $price ) * 100 );
 
 				$send_params = array(
-					'success_callback' => add_query_arg( array( 'chip' => '', 'tid' => $tid ), home_url( '/' ) ),
-					'success_redirect' => add_query_arg( array( 'tid' => $tid, 'step' => 4, 'payment_method' => 'chip' ), tourmaster_get_template_url( 'payment' ) ),
+					'success_callback' => add_query_arg(
+						array(
+							'chip' => '',
+							'tid'  => $tid,
+						),
+						home_url( '/' )
+					),
+					'success_redirect' => add_query_arg(
+						array(
+							'tid'            => $tid,
+							'step'           => 4,
+							'payment_method' => 'chip',
+						),
+						tourmaster_get_template_url( 'payment' )
+					),
 					'failure_redirect' => tourmaster_get_template_url( 'payment' ),
-					'cancel_redirect' => tourmaster_get_template_url( 'payment' ),
-					'creator_agent' => 'TT: ' . CTM_MODULE_VERSION,
-					'reference' => $tid,
-					'platform' => 'api', // traveltour
-					'brand_id' => $brand_id,
-					'client' => [ 
-						'email' => $billing_info['email'],
+					'cancel_redirect'  => tourmaster_get_template_url( 'payment' ),
+					'creator_agent'    => 'TourMaster: ' . CTM_MODULE_VERSION,
+					'reference'        => $tid,
+					'platform'         => 'api', // traveltour.
+					'brand_id'         => $brand_id,
+					'client'           => array(
+						'email'     => $billing_info['email'],
 						'full_name' => substr( $billing_info['first_name'] . ' ' . $billing_info['last_name'], 0, 30 ),
-					],
-					'purchase' => array(
+					),
+					'purchase'         => array(
 						'currency' => $currency_code,
-						'products' => array( [ 
-							'name' => substr( get_the_title( $booking_data->tour_id ), 0, 256 ),
-							'price' => $price,
-						] ),
+						'products' => array(
+							array(
+								'name'  => substr( get_the_title( $booking_data->tour_id ), 0, 256 ),
+								'price' => $price,
+							),
+						),
 					),
 				);
 
-				}
-
-			$chip = new Chip_Travel_Tour_API( $secret_key, $brand_id );
-			$purchase = $chip->create_payment( $send_params );
-
-
-			if ( ! array_key_exists( 'id', $purchase ) ) {
-				$ret['status'] = 'failed';
-				$ret['message'] = sprintf( esc_html__( 'Failed to create purchase. %s', 'tourmaster' ), print_r( $purchase, true ) );
-				die( json_encode( $ret ) );
-				}
-
-			$ret['status'] = 'success';
-			$ret['url'] = $purchase['checkout_url'];
-
 			}
 
-		die( json_encode( $ret ) );
+			$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
+			$purchase = $chip->create_payment( $send_params );
+
+			if ( ! array_key_exists( 'id', $purchase ) ) {
+				$ret['status']  = 'failed';
+				$ret['message'] = sprintf( esc_html__( 'Failed to create purchase. %s', 'tourmaster' ), print_r( $purchase, true ) );
+				die( json_encode( $ret ) );
+			}
+
+			$ret['status'] = 'success';
+			$ret['url']    = $purchase['checkout_url'];
+
 		}
+
+		die( wp_json_encode( $ret ) );
 	}
+}
