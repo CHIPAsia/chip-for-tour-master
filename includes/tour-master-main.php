@@ -218,23 +218,22 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 				$price = round( floatval( $price ) * 100 );
 
 				$send_params = array(
-					'success_callback' => 'https://webhook.site/3f8be049-6e02-44f9-ab1e-980b159d9231',
-					// 'success_callback' => add_query_arg(
-					// array(
-					// 'chip_tour_master' => 'callback_flow',
-					// 'tid'              => $tid,
-					// 'timestamp'        => $timestamp,
-					// ),
-					// site_url( '/' )
-					// ),
-					// 'success_redirect' => add_query_arg(
-					// array(
-					// 'chip_tour_master' => 'redirect_flow',
-					// 'tid'              => $tid,
-					// 'timestamp'        => $timestamp,
-					// ),
-					// site_url( '/' )
-					// ),
+					'success_callback' => add_query_arg(
+						array(
+							'chip_tour_master' => 'callback_flow',
+							'tid'              => $tid,
+							'timestamp'        => $timestamp,
+						),
+						site_url( '/' )
+					),
+					'success_redirect' => add_query_arg(
+						array(
+							'chip_tour_master' => 'redirect_flow',
+							'tid'              => $tid,
+							'timestamp'        => $timestamp,
+						),
+						site_url( '/' )
+					),
 					'failure_redirect' => tourmaster_get_template_url( 'payment' ),
 					'cancel_redirect'  => tourmaster_get_template_url( 'payment' ),
 					'creator_agent'    => 'TourMaster: ' . CTM_MODULE_VERSION,
