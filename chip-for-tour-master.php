@@ -18,7 +18,8 @@ add_action( 'plugins_loaded', 'ctm_load', 20 );
 function ctm_load() {
 	define_ctm_static();
 	require CTM_PLUGIN_DIR . '/includes/chip-api.php';
-	require CTM_PLUGIN_DIR . '/includes/tour-master-main.php';
+	require CTM_PLUGIN_DIR . '/includes/tour-master-main.php'; // Tour
+	require CTM_PLUGIN_DIR . '/includes/tour-master-room.php'; // Room
 }
 
 function define_ctm_static() {
