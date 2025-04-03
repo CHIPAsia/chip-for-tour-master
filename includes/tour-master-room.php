@@ -109,6 +109,7 @@ function chip_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = tru
 
 			$payment_info = array(
 				'id'             => $purchase['id'],
+				'amount'         => $price,
 				'transaction_id' => $purchase['id'] . '-pending',
 				'payment_method' => 'CHIP',
 				'payment_status' => $purchase['status'],
@@ -251,17 +252,29 @@ function chip_redirect_room_status_update() {
 
 	$payment_infos = array_values( $payment_infos );
 
+	$payment_infos[] = $new_payment_info;
+	$order_status    = tourmaster_room_payment_order_status( $order->total_price, $payment_infos, true );
+
 	$wpdb->update(
 		"{$wpdb->prefix}tourmaster_room_order",
 		array(
 			'payment_info' => wp_json_encode( $payment_infos ),
+			'order_status' => $order_status,
 		),
 		array( 'id' => $tid ),
-		array( '%s' ),
+		array( '%s', '%s' ),
 		array( '%d' )
 	);
 
-	do_action( 'goodlayers_set_payment_complete', $tid, $new_payment_info );
+	// send an email.
+	if ( $order_status == 'deposit-paid' ) {
+		tourmaster_room_mail_notification( 'deposit-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+		tourmaster_room_mail_notification( 'admin-deposit-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+	} elseif ( $order_status == 'approved' || $order_status == 'online-paid' ) {
+		tourmaster_room_mail_notification( 'payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+		tourmaster_room_mail_notification( 'admin-online-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+	}
+	tourmaster_room_send_email_invoice( $tid );
 
 	wp_redirect( $success_redirect );
 	exit;
