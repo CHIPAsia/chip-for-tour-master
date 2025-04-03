@@ -1,6 +1,6 @@
 <?php
 
-add_filter( 'goodlayers_credit_card_payment_gateway_options', 'chip_pg_options' );
+//add_filter( 'goodlayers_credit_card_payment_gateway_options', 'chip_pg_options' );
 if ( ! function_exists( 'chip_pg_options' ) ) {
 	function chip_pg_options( $options ) {
 		$options['chip'] = esc_html__( 'CHIP', 'tourmaster' );
