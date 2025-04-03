@@ -130,9 +130,9 @@ if ( ! function_exists( 'tourmaster_chip_payment_form' ) ) {
 						},
 						success: function (data) {
 							if (data.status == 'success') {
-				// trigger the complete button
+								// trigger the complete button
 								// form.find('.goodlayers-payment-plugin-complete').trigger('click');
-				window.location.href = data.url;
+								window.location.href = data.url;
 							} else if (typeof (data.message) != 'undefined') {
 								form.find('.payment-errors').text(data.message).slideDown(200);
 							}
@@ -173,7 +173,8 @@ if ( ! function_exists( 'tourmaster_chip_payment_form' ) ) {
 if ( ! function_exists( 'chip_create_purchase' ) ) {
 	function chip_create_purchase() {
 
-		$ret = array();
+		$ret       = array();
+		$timestamp = time();
 
 		if ( ! empty( $_POST['tid'] ) ) {
 			$tid = preg_replace( '/[^0-9]/', '', $_POST['tid'] );
@@ -185,18 +186,23 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 
 			$booking_data = tourmaster_get_booking_data( array( 'id' => $_POST['tid'] ), array( 'single' => true ) );
 
-			$pricing_info = json_decode( $booking_data->pricing_info, true );
 			$billing_info = json_decode( $booking_data->billing_info, true );
-
-			$price = $pricing_info['pay-amount'];
 
 			$currency_code = strtoupper( tourmaster_get_option( 'general', 'currency-code', 'USD' ) );
 
-			// apply currency
-			if ( ! empty( $booking_data->currency ) ) {
-				$currency      = json_decode( $booking_data->currency, true );
-				$currency_code = strtoupper( $currency['currency-code'] );
-				$price         = $price * floatval( $currency['exchange-rate'] );
+			$t_data = apply_filters( 'goodlayers_payment_get_transaction_data', array(), $_POST['tid'], array( 'currency', 'price', 'email' ) );
+
+			$price = '';
+			if ( $t_data['price']['deposit-price'] ) {
+				$price = $t_data['price']['deposit-price'];
+			} else {
+				$price = $t_data['price']['pay-amount'];
+			}
+
+				// apply currency
+			if ( ! empty( $t_data['currency'] ) ) {
+				$currency_code = strtoupper( $t_data['currency']['currency-code'] );
+				$price         = $price * floatval( $t_data['currency']['exchange-rate'] );
 			}
 
 			if ( empty( $price ) ) {
@@ -212,21 +218,23 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 				$price = round( floatval( $price ) * 100 );
 
 				$send_params = array(
-					'success_callback' => add_query_arg(
-						array(
-							'chip' => '',
-							'tid'  => $tid,
-						),
-						home_url( '/' )
-					),
-					'success_redirect' => add_query_arg(
-						array(
-							'tid'            => $tid,
-							'step'           => 4,
-							'payment_method' => 'chip',
-						),
-						tourmaster_get_template_url( 'payment' )
-					),
+					'success_callback' => 'https://webhook.site/3f8be049-6e02-44f9-ab1e-980b159d9231',
+					// 'success_callback' => add_query_arg(
+					// array(
+					// 'chip_tour_master' => 'callback_flow',
+					// 'tid'              => $tid,
+					// 'timestamp'        => $timestamp,
+					// ),
+					// site_url( '/' )
+					// ),
+					// 'success_redirect' => add_query_arg(
+					// array(
+					// 'chip_tour_master' => 'redirect_flow',
+					// 'tid'              => $tid,
+					// 'timestamp'        => $timestamp,
+					// ),
+					// site_url( '/' )
+					// ),
 					'failure_redirect' => tourmaster_get_template_url( 'payment' ),
 					'cancel_redirect'  => tourmaster_get_template_url( 'payment' ),
 					'creator_agent'    => 'TourMaster: ' . CTM_MODULE_VERSION,
@@ -248,22 +256,278 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 					),
 				);
 
+				$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
+				$purchase = $chip->create_payment( $send_params );
+
+				if ( ! array_key_exists( 'id', $purchase ) ) {
+					$ret['status']  = 'failed';
+					$ret['message'] = sprintf( esc_html__( 'Failed to create purchase. %s', 'tourmaster' ), wp_json_encode( $purchase, JSON_PRETTY_PRINT ) );
+					die( wp_json_encode( $ret ) );
+				}
+
+				$payment_info = array(
+					'id'             => $purchase['id'],
+					'transaction_id' => $purchase['id'] . '-pending',
+					'payment_method' => 'CHIP',
+					'payment_status' => $purchase['status'],
+					'timestamp'      => $timestamp,
+				);
+
+				// get old payment info
+				$payment_infos   = json_decode( $booking_data->payment_info, true );
+				$payment_infos   = tourmaster_payment_info_format( $payment_infos, $booking_data->order_status );
+				$payment_infos[] = $payment_info;
+
+				tourmaster_update_booking_data(
+					array(
+						'payment_info' => wp_json_encode( $payment_infos ),
+					),
+					array( 'id' => $tid ),
+					array( '%s' ),
+					array( '%d' )
+				);
+
+				$ret['status'] = 'success';
+				$ret['url']    = $purchase['checkout_url'];
+
 			}
-
-			$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
-			$purchase = $chip->create_payment( $send_params );
-
-			if ( ! array_key_exists( 'id', $purchase ) ) {
-				$ret['status']  = 'failed';
-				$ret['message'] = sprintf( esc_html__( 'Failed to create purchase. %s', 'tourmaster' ), print_r( $purchase, true ) );
-				die( json_encode( $ret ) );
-			}
-
-			$ret['status'] = 'success';
-			$ret['url']    = $purchase['checkout_url'];
-
 		}
 
 		die( wp_json_encode( $ret ) );
 	}
+}
+
+add_action( 'init', 'chip_redirect_status_update', 10, 0 );
+function chip_redirect_status_update() {
+	if ( ! isset( $_GET['chip_tour_master'] ) ) {
+		return;
+	}
+
+	if ( $_GET['chip_tour_master'] !== 'redirect_flow' ) {
+		return;
+	}
+
+	$tid = preg_replace( '/[^0-9]/', '', $_GET['tid'] );
+	$tid = absint( $tid );
+
+	$success_redirect = add_query_arg(
+		array(
+			'tid'            => $tid,
+			'step'           => 4,
+			'payment_method' => 'paypal',
+		),
+		tourmaster_get_template_url( 'payment' )
+	);
+
+	$booking_data = tourmaster_get_booking_data( array( 'id' => $tid ), array( 'single' => true ) );
+
+	if ( 'online-paid' === $booking_data->order_status ) {
+		wp_redirect( $success_redirect );
+		exit;
+	}
+
+	$payment_infos = json_decode( $booking_data->payment_info, true );
+	if ( empty( $payment_infos ) || ! is_array( $payment_infos ) ) {
+		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		exit;
+	}
+
+	$payment_info = array();
+
+	foreach ( $payment_infos as $key => $pinfo ) {
+		if ( empty( $pinfo['transaction_id'] ) || empty( $pinfo['payment_method'] ) ) {
+			continue;
+		}
+
+		if ( $pinfo['timestamp'] == $_GET['timestamp'] ) {
+			$payment_info = $pinfo;
+			break;
+		}
+	}
+
+	if ( empty( $payment_info ) ) {
+		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		exit;
+	}
+
+	if ( $payment_info['payment_method'] !== 'CHIP' ) {
+		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		exit;
+	}
+
+	$secret_key = trim( tourmaster_get_option( 'payment', 'chip-secret-key', '' ) );
+
+	$chip     = new Chip_Travel_Tour_API( $secret_key, '' );
+	$purchase = $chip->get_payment( $payment_info['id'] );
+
+	if ( $purchase['status'] !== 'paid' ) {
+		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		exit;
+	}
+
+	$price = $purchase['payment']['amount'] / 100;
+
+	if ( ! empty( $booking_data->currency ) ) {
+		$currency = json_decode( $booking_data->currency, true );
+		$price    = $price / floatval( $currency['exchange-rate'] );
+	}
+
+	$new_payment_info = array(
+		'transaction_id'  => $purchase['id'],
+		'amount'          => $price,
+		'payment_method'  => 'CHIP',
+		'payment_status'  => $purchase['status'],
+		'submission_date' => current_time( 'mysql' ),
+		'timestamp'       => time(),
+	);
+
+	foreach ( $payment_infos as $key => $value ) {
+		if ( $value['timestamp'] == $_GET['timestamp'] ) {
+			unset( $payment_infos[ $key ] );
+			break;
+		}
+	}
+
+	$payment_infos = array_values( $payment_infos );
+
+	tourmaster_update_booking_data(
+		array(
+			'payment_info' => wp_json_encode( $payment_infos ),
+		),
+		array( 'id' => $tid ),
+		array( '%s' ),
+		array( '%d' )
+	);
+
+	do_action( 'goodlayers_set_payment_complete', $tid, $new_payment_info );
+
+	wp_redirect( $success_redirect );
+	exit;
+}
+
+add_action( 'init', 'chip_callback_status_update', 10, 0 );
+/**
+ *
+ * Callback function for CHIP payment status update.
+ *
+ * @psalm-suppress MissingNonceVerification
+ *
+ * @phpcs:disable WordPress.Security.NonceVerification
+ */
+function chip_callback_status_update() {
+	if ( ! isset( $_GET['chip_tour_master'] ) ) {
+		return;
+	}
+
+	if ( 'callback_flow' !== $_GET['chip_tour_master'] ) {
+		return;
+	}
+
+	if ( ! isset( $_SERVER['HTTP_X_SIGNATURE'] ) ) {
+		exit( 'No X Signature header' );
+	}
+
+	if ( ! isset( $_GET['timestamp'] ) ) {
+		exit( 'No timestamp' );
+	}
+
+	if ( ! isset( $_GET['tid'] ) ) {
+		exit( 'No tid' );
+	}
+
+	$tid = sanitize_text_field( wp_unslash( $_GET['tid'] ) );
+	$tid = absint( $tid );
+
+	$booking_data = tourmaster_get_booking_data( array( 'id' => $tid ), array( 'single' => true ) );
+
+	if ( 'online-paid' === $booking_data->order_status ) {
+		exit;
+	}
+
+	$payment_infos = json_decode( $booking_data->payment_info, true );
+	if ( empty( $payment_infos ) || ! is_array( $payment_infos ) ) {
+		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		exit;
+	}
+
+	$payment_info = array();
+
+	foreach ( $payment_infos as $key => $pinfo ) {
+		if ( empty( $pinfo['transaction_id'] ) || empty( $pinfo['payment_method'] ) ) {
+			continue;
+		}
+
+		if ( absint( $_GET['timestamp'] ) === $pinfo['timestamp'] ) {
+			$payment_info = $pinfo;
+			break;
+		}
+	}
+
+	if ( empty( $payment_info ) ) {
+		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		exit;
+	}
+
+	if ( $payment_info['payment_method'] !== 'CHIP' ) {
+		exit;
+	}
+
+	$secret_key     = trim( tourmaster_get_option( 'payment', 'chip-secret-key', '' ) );
+	$ten_secret_key = substr( $secret_key, 0, 10 );
+
+	if ( empty( $public_key = get_option( 'chip_tm_' . $ten_secret_key ) ) ) {
+		$chip       = new Chip_Travel_Tour_API( $secret_key, '' );
+		$public_key = str_replace( '\n', "\n", $chip->public_key() );
+		update_option( 'chip_tm_' . $ten_secret_key, $public_key );
+	}
+
+	$content = file_get_contents( 'php://input' );
+
+	if ( openssl_verify( $content, base64_decode( $_SERVER['HTTP_X_SIGNATURE'] ), $public_key, 'sha256WithRSAEncryption' ) != 1 ) {
+		exit( 'Invalid signature' );
+	}
+
+	$purchase = json_decode( $content, true );
+
+	if ( $purchase['status'] !== 'paid' ) {
+		exit;
+	}
+
+	$price = $purchase['payment']['amount'] / 100;
+
+	if ( ! empty( $booking_data->currency ) ) {
+		$currency = json_decode( $booking_data->currency, true );
+		$price    = $price / floatval( $currency['exchange-rate'] );
+	}
+
+	$new_payment_info = array(
+		'transaction_id'  => $purchase['id'],
+		'amount'          => $price,
+		'payment_method'  => 'CHIP',
+		'payment_status'  => $purchase['status'],
+		'submission_date' => current_time( 'mysql' ),
+		'timestamp'       => time(),
+	);
+
+	foreach ( $payment_infos as $key => $value ) {
+		if ( absint( $_GET['timestamp'] ) === $value['timestamp'] ) {
+			unset( $payment_infos[ $key ] );
+			break;
+		}
+	}
+
+	$payment_infos = array_values( $payment_infos );
+
+	tourmaster_update_booking_data(
+		array(
+			'payment_info' => wp_json_encode( $payment_infos ),
+		),
+		array( 'id' => $tid ),
+		array( '%s' ),
+		array( '%d' )
+	);
+
+	do_action( 'goodlayers_set_payment_complete', $tid, $new_payment_info );
+
+	exit;
 }
