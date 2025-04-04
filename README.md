@@ -45,6 +45,29 @@ Additional configuration are required at the moment until Tour Master add the re
   );
   ```
 
+* Edit file: _wp-content/plugins/tourmaster/include/_***payment-util.php***
+  * Add `$chip_enable = in_array('chip', $payment_method);` after line: `$paypal_enable = in_array('paypal', $payment_method);`
+  * Replace
+
+  ```php
+  if( $paypal_enable || $credit_card_enable || $hipayprofessional_enable || $custom_payment_enable ){
+  ```
+
+    with
+
+  ```php
+  if( $chip_enable || $paypal_enable || $credit_card_enable || $hipayprofessional_enable || $custom_payment_enable ){
+  ```
+
+  * Add this code block after this block: `if( $hipayprofessional_enable ){`
+
+  ```php
+  if( $chip_enable ){
+    $chip_button_atts = apply_filters('tourmaster_chip_button_atts', array());
+    $ret .= '<option value="' . esc_attr($chip_button_atts['type']) . '">' . esc_html__('CHIP', 'tourmaster') . '</option>';
+  }
+  ```
+
 ## Screenshot
 
 ![Set API Key](./assets/api_key.png "Set Secret Key & Brand ID Screenshot")
