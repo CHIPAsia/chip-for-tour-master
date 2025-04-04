@@ -100,6 +100,16 @@ function chip_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = tru
 				),
 			);
 
+			$process_fee = trim( tourmaster_get_option( 'room_payment', 'chip-processing-fee', 0 ) );
+			$process_fee = absint( wp_unslash( $process_fee ) );
+
+			if ( $process_fee > 0 ) {
+				$send_params['purchase']['products'][] = array(
+					'name'  => esc_html__( 'Processing Fee', 'chip-for-tour-master' ),
+					'price' => round( $process_fee ),
+				);
+			}
+
 			$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
 			$purchase = $chip->create_payment( $send_params );
 
@@ -229,6 +239,10 @@ function chip_redirect_room_status_update() {
 
 	$price = $purchase['payment']['amount'] / 100;
 
+	$process_fee = trim( tourmaster_get_option( 'room_payment', 'chip-processing-fee', 0 ) );
+	$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
+	$price       = $price - $process_fee;
+
 	if ( ! empty( $order->currency ) ) {
 		$currency = json_decode( $order->currency, true );
 		$price    = $price / floatval( $currency['exchange-rate'] );
@@ -354,6 +368,10 @@ function chip_callback_room_status_update() {
 	}
 
 	$price = $purchase['payment']['amount'] / 100;
+
+	$process_fee = trim( tourmaster_get_option( 'room_payment', 'chip-processing-fee', 0 ) );
+	$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
+	$price       = $price - $process_fee;
 
 	if ( ! empty( $order->currency ) ) {
 		$currency = json_decode( $order->currency, true );

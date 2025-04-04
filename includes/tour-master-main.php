@@ -17,18 +17,24 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 		$options['chip'] = array(
 			'title'   => esc_html__( 'CHIP', 'chip-for-tour-master' ),
 			'options' => array(
-				'chip-secret-key'    => array(
+				'chip-secret-key'     => array(
 					'title' => __( 'CHIP Secret Key', 'chip-for-tour-master' ),
 					'type'  => 'text',
 				),
-				'chip-brand-id'      => array(
+				'chip-brand-id'       => array(
 					'title' => __( 'CHIP Brand ID', 'chip-for-tour-master' ),
 					'type'  => 'text',
 				),
-				'chip-currency-code' => array(
+				'chip-currency-code'  => array(
 					'title'   => esc_html__( 'CHIP Currency Code', 'chip-for-tour-master' ),
 					'type'    => 'text',
 					'default' => 'MYR',
+				),
+				'chip-processing-fee' => array(
+					'title'       => esc_html__( 'CHIP Processing Fee', 'chip-for-tour-master' ),
+					'type'        => 'text',
+					'default'     => '0',
+					'description' => esc_html__( 'Set 100 for RM 1 charge', 'chip-for-tour-master' ),
 				),
 			),
 		);
@@ -258,6 +264,16 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 					),
 				);
 
+				$process_fee = trim( tourmaster_get_option( 'payment', 'chip-processing-fee', 0 ) );
+				$process_fee = absint( wp_unslash( $process_fee ) );
+
+				if ( $process_fee > 0 ) {
+					$send_params['purchase']['products'][] = array(
+						'name'  => esc_html__( 'Processing Fee', 'chip-for-tour-master' ),
+						'price' => round( $process_fee ),
+					);
+				}
+
 				$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
 				$purchase = $chip->create_payment( $send_params );
 
@@ -380,6 +396,10 @@ function chip_redirect_status_update() {
 	}
 
 	$price = $purchase['payment']['amount'] / 100;
+
+	$process_fee = trim( tourmaster_get_option( 'payment', 'chip-processing-fee', 0 ) );
+	$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
+	$price       = $price - $process_fee;
 
 	if ( ! empty( $booking_data->currency ) ) {
 		$currency = json_decode( $booking_data->currency, true );
@@ -508,6 +528,10 @@ function chip_callback_status_update() {
 	}
 
 	$price = $purchase['payment']['amount'] / 100;
+
+	$process_fee = trim( tourmaster_get_option( 'payment', 'chip-processing-fee', 0 ) );
+	$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
+	$price       = $price - $process_fee;
 
 	if ( ! empty( $booking_data->currency ) ) {
 		$currency = json_decode( $booking_data->currency, true );
