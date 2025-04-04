@@ -217,7 +217,7 @@ function chip_redirect_room_status_update() {
 		exit;
 	}
 
-	$secret_key = trim( tourmaster_get_option( 'room-payment', 'chip-secret-key', '' ) );
+	$secret_key = trim( tourmaster_get_option( 'room_payment', 'chip-secret-key', '' ) );
 
 	$chip     = new Chip_Travel_Tour_API( $secret_key, '' );
 	$purchase = $chip->get_payment( $payment_info['id'] );
@@ -332,7 +332,7 @@ function chip_callback_room_status_update() {
 		exit;
 	}
 
-	$secret_key = trim( tourmaster_get_option( 'room-payment', 'chip-secret-key', '' ) );
+	$secret_key = trim( tourmaster_get_option( 'room_payment', 'chip-secret-key', '' ) );
 	$ten_secret_key = substr( $secret_key, 0, 10 );
 
 	if ( empty( $public_key = get_option( 'chip_tm_' . $ten_secret_key ) ) ) {
