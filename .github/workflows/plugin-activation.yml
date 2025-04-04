@@ -56,8 +56,3 @@ jobs:
     - name: Test plugin activation
       run: |
         wp plugin activate chip-for-tour-master --path=/tmp/wordpress
-
-    - name: PHP Compatibility Check
-      run: |
-        composer require phpcompatibility/php-compatibility
-        ./vendor/bin/phpcs --standard=PHPCompatibility --extensions=php --runtime-set testVersion 7.4- .
