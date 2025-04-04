@@ -39,6 +39,10 @@ This plugin will enable your Tour Master site to be integrated with CHIP as per 
 
 * WordPress 6.5 or greater
 
+= Configuration =
+
+This plugin requires additional configuration until Tour Master add the relevant action hooks and filters. [See more](https://github.com/CHIPAsia/chip-for-tour-master/blob/main/README.md).
+
 = Manual installation =
 
 The manual installation method involves downloading our plugin and uploading it to your webserver via your favorite FTP application. The

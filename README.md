@@ -17,7 +17,7 @@ Set the **Brand ID** and **Secret Key** in the plugins settings.
 
 For currency settings, set the value to **MYR**.
 
-Additional configuration are required at the moment until Tour Master add action hooks and filters.
+Additional configuration are required at the moment until Tour Master add the relevant action hooks and filters.
 
 * Edit file: _wp-content/plugins/tourmaster/room/include/_***payment-element.php***
   * Add `in_array( 'chip', $payment_method )` in line:
