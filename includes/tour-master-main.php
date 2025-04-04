@@ -1,6 +1,6 @@
 <?php
 
-//add_filter( 'goodlayers_credit_card_payment_gateway_options', 'chip_pg_options' );
+// add_filter( 'goodlayers_credit_card_payment_gateway_options', 'chip_pg_options' );
 if ( ! function_exists( 'chip_pg_options' ) ) {
 	function chip_pg_options( $options ) {
 		$options['chip'] = esc_html__( 'CHIP', 'tourmaster' );
@@ -60,7 +60,7 @@ if ( ! function_exists( 'chip_additional_payment_method' ) ) {
 		$chip_button_atts = apply_filters( 'tourmaster_chip_button_atts', array() );
 
 		$ret  = '';
-		$ret .= '<div class="tourmaster-online-payment-method tourmaster-payment-chip" >';
+		$ret .= '<div class="tourmaster-online-payment-method tourmaster-payment-paypal" >';
 		$ret .= '<img src="' . esc_attr( CTM_PLUGIN_URL ) . '/assets/paywithfpx.png" alt="chip" ';
 		if ( ! empty( $chip_button_atts['method'] ) && $chip_button_atts['method'] == 'ajax' ) {
 			$ret .= 'data-method="ajax" data-action="tourmaster_payment_selected" data-ajax="' . esc_url( TOURMASTER_AJAX_URL ) . '" ';
@@ -69,6 +69,9 @@ if ( ! function_exists( 'chip_additional_payment_method' ) ) {
 			}
 		}
 		$ret .= ' />';
+		$ret .= '<div class="tourmaster-payment-paypal-service-fee-text" >';
+		$ret .= esc_html__( 'Pay with FPX, Card & E-Wallet.', 'tourmaster' );
+		$ret .= '</div>';
 		$ret .= '</div>';
 
 		return $ret;
@@ -528,5 +531,5 @@ function chip_callback_status_update() {
 
 	do_action( 'goodlayers_set_payment_complete', $tid, $new_payment_info );
 
-	exit('Callback success');
+	exit( 'Callback success' );
 }
