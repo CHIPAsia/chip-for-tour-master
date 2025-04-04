@@ -184,13 +184,13 @@ function chip_redirect_room_status_update() {
 	$order = $wpdb->get_row( $sql );
 
 	if ( 'online-paid' === $order->order_status ) {
-		wp_redirect( $success_redirect );
+		wp_safe_redirect( $success_redirect );
 		exit;
 	}
 
 	$payment_infos = json_decode( $order->payment_info, true );
 	if ( empty( $payment_infos ) || ! is_array( $payment_infos ) ) {
-		wp_redirect( tourmaster_get_template_url( 'room-payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'room-payment' ) );
 		exit;
 	}
 
@@ -208,12 +208,12 @@ function chip_redirect_room_status_update() {
 	}
 
 	if ( empty( $payment_info ) ) {
-		wp_redirect( tourmaster_get_template_url( 'room-payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'room-payment' ) );
 		exit;
 	}
 
 	if ( $payment_info['payment_method'] !== 'CHIP' ) {
-		wp_redirect( tourmaster_get_template_url( 'room-payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'room-payment' ) );
 		exit;
 	}
 
@@ -223,7 +223,7 @@ function chip_redirect_room_status_update() {
 	$purchase = $chip->get_payment( $payment_info['id'] );
 
 	if ( $purchase['status'] !== 'paid' ) {
-		wp_redirect( tourmaster_get_template_url( 'room-payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'room-payment' ) );
 		exit;
 	}
 
@@ -276,7 +276,7 @@ function chip_redirect_room_status_update() {
 	}
 	tourmaster_room_send_email_invoice( $tid );
 
-	wp_redirect( $success_redirect );
+	wp_safe_redirect( $success_redirect );
 	exit;
 }
 

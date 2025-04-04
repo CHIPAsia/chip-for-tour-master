@@ -300,16 +300,28 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 }
 
 add_action( 'init', 'chip_redirect_status_update', 10, 0 );
+/**
+ *
+ * Redirect function for user redirect after payment. It is also for status update.
+ *
+ * @psalm-suppress MissingNonceVerification
+ *
+ * @phpcs:disable WordPress.Security.NonceVerification
+ */
 function chip_redirect_status_update() {
 	if ( ! isset( $_GET['chip_tour_master'] ) ) {
 		return;
 	}
 
-	if ( $_GET['chip_tour_master'] !== 'redirect_flow' ) {
+	if ( 'redirect_flow' !== $_GET['chip_tour_master'] ) {
 		return;
 	}
 
-	$tid = preg_replace( '/[^0-9]/', '', $_GET['tid'] );
+	if ( ! isset( $_GET['tid'] ) ) {
+		exit( 'No tid' );
+	}
+
+	$tid = sanitize_text_field( wp_unslash( $_GET['tid'] ) );
 	$tid = absint( $tid );
 
 	$success_redirect = add_query_arg(
@@ -324,13 +336,13 @@ function chip_redirect_status_update() {
 	$booking_data = tourmaster_get_booking_data( array( 'id' => $tid ), array( 'single' => true ) );
 
 	if ( 'online-paid' === $booking_data->order_status ) {
-		wp_redirect( $success_redirect );
+		wp_safe_redirect( $success_redirect );
 		exit;
 	}
 
 	$payment_infos = json_decode( $booking_data->payment_info, true );
 	if ( empty( $payment_infos ) || ! is_array( $payment_infos ) ) {
-		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'payment' ) );
 		exit;
 	}
 
@@ -348,12 +360,12 @@ function chip_redirect_status_update() {
 	}
 
 	if ( empty( $payment_info ) ) {
-		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'payment' ) );
 		exit;
 	}
 
 	if ( $payment_info['payment_method'] !== 'CHIP' ) {
-		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'payment' ) );
 		exit;
 	}
 
@@ -363,7 +375,7 @@ function chip_redirect_status_update() {
 	$purchase = $chip->get_payment( $payment_info['id'] );
 
 	if ( $purchase['status'] !== 'paid' ) {
-		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'payment' ) );
 		exit;
 	}
 
@@ -403,7 +415,7 @@ function chip_redirect_status_update() {
 
 	do_action( 'goodlayers_set_payment_complete', $tid, $new_payment_info );
 
-	wp_redirect( $success_redirect );
+	wp_safe_redirect( $success_redirect );
 	exit;
 }
 
@@ -448,7 +460,7 @@ function chip_callback_status_update() {
 
 	$payment_infos = json_decode( $booking_data->payment_info, true );
 	if ( empty( $payment_infos ) || ! is_array( $payment_infos ) ) {
-		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'payment' ) );
 		exit;
 	}
 
@@ -466,7 +478,7 @@ function chip_callback_status_update() {
 	}
 
 	if ( empty( $payment_info ) ) {
-		wp_redirect( tourmaster_get_template_url( 'payment' ) );
+		wp_safe_redirect( tourmaster_get_template_url( 'payment' ) );
 		exit;
 	}
 
