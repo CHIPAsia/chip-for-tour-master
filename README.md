@@ -42,7 +42,7 @@ Additional configuration are required at the moment until Tour Master add action
       'credit-card'       => esc_html__( 'Credit Card', 'tourmaster' ),
       'hipayprofessional' => esc_html__( 'Hipay Professional','tourmaster' ),
       'chip'              => esc_html__( 'CHIP', 'tourmaster' ),
-      );
+    );
   ```
 
 ## Screenshot
