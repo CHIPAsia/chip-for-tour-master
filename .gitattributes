@@ -4,3 +4,8 @@
 changelog.txt export-ignore
 /assets/api_key.png export-ignore
 /assets/logo.svg export-ignore
+/.github        export-ignore
+/tests          export-ignore
+/phpunit.xml    export-ignore
+/composer.json  export-ignore
+/composer.lock  export-ignore

@@ -1,0 +1,34 @@
+name: WordPress Plugin Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  phpunit:
+    name: PHPUnit Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        extensions: mbstring, dom, simplexml, xml, xmlreader, xmlwriter
+        coverage: none
+    
+    - name: Setup WordPress
+      uses: 10up/action-wordpress-tests@v1
+      with:
+        version: 'latest'
+        db-host: localhost:3306
+        db-name: wordpress_tests
+        db-user: root
+        db-pass: root
+    
+    - name: Run PHPUnit tests
+      run: |
+        ./vendor/bin/phpunit
