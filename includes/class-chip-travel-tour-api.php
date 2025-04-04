@@ -1,5 +1,12 @@
 <?php
-
+/**
+ * Chip Travel Tour API Class File
+ *
+ * This file contains the Chip_Travel_Tour_API class, which provides methods
+ * for interacting with the CHIP API for travel and tour-related operations.
+ *
+ * @package Chip_Travel_Tour
+ */
 class Chip_Travel_Tour_API {
 	/**
 	 * CHIP Secret Key.
@@ -14,29 +21,67 @@ class Chip_Travel_Tour_API {
 	 * @var $brand_id
 	 */
 	public $brand_id;
+
+	/**
+	 * Constructor for the Chip_Travel_Tour_API class.
+	 *
+	 * @param string $secret_key The CHIP secret key.
+	 * @param string $brand_id   The CHIP brand ID.
+	 */
 	public function __construct( $secret_key, $brand_id ) {
 		$this->secret_key = $secret_key;
 		$this->brand_id   = $brand_id;
 	}
 
+	/**
+	 * Set the CHIP secret key and brand ID.
+	 *
+	 * @param string $secret_key The CHIP secret key.
+	 * @param string $brand_id   The CHIP brand ID.
+	 */
 	public function set_key( $secret_key, $brand_id ) {
 		$this->secret_key = $secret_key;
 		$this->brand_id   = $brand_id;
 	}
 
+	/**
+	 * Create a payment using the CHIP API.
+	 *
+	 * @param array $params The parameters for the payment.
+	 * @return array|null The response from the API or null on failure.
+	 */
 	public function create_payment( $params ) {
 		return $this->call( 'POST', '/purchases/?time=' . time(), $params );
 	}
 
+	/**
+	 * Create a client using the CHIP API.
+	 *
+	 * @param array $params The parameters for client.
+	 * @return array|null The response from the API or null on failure.
+	 */
 	public function create_client( $params ) {
 		return $this->call( 'POST', '/clients/', $params );
 	}
 
+	/**
+	 * Get a client by email using the CHIP API.
+	 *
+	 * @param string $email The email address of the client.
+	 * @return array|null The response from the API or null on failure.
+	 */
 	public function get_client_by_email( $email ) {
 		$email_encoded = urlencode( $email );
 		return $this->call( 'GET', "/clients/?q={$email_encoded}" );
 	}
 
+	/**
+	 * Patch a client by ID using the CHIP API.
+	 *
+	 * @param string $client_id The ID of the client.
+	 * @param array  $params The parameter of the client.
+	 * @return array|null The response from the API or null on failure.
+	 */
 	public function patch_client( $client_id, $params ) {
 		return $this->call( 'PATCH', "/clients/{$client_id}/", $params );
 	}
@@ -141,7 +186,7 @@ class Chip_Travel_Tour_API {
 				'sslverify' => ! defined( 'TT_CHIP_SSLVERIFY_FALSE' ),
 				'headers'   => $headers,
 				'body'      => $params,
-				'timeout'   => 10, // charge card require longer timeout
+				'timeout'   => 10, // charge card require longer timeout.
 			)
 		);
 
