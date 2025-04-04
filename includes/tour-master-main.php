@@ -528,5 +528,5 @@ function chip_callback_status_update() {
 
 	do_action( 'goodlayers_set_payment_complete', $tid, $new_payment_info );
 
-	exit;
+	exit('Callback success');
 }

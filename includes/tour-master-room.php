@@ -217,7 +217,7 @@ function chip_redirect_room_status_update() {
 		exit;
 	}
 
-	$secret_key = trim( tourmaster_get_option( 'payment', 'chip-secret-key', '' ) );
+	$secret_key = trim( tourmaster_get_option( 'room-payment', 'chip-secret-key', '' ) );
 
 	$chip     = new Chip_Travel_Tour_API( $secret_key, '' );
 	$purchase = $chip->get_payment( $payment_info['id'] );
@@ -278,4 +278,129 @@ function chip_redirect_room_status_update() {
 
 	wp_redirect( $success_redirect );
 	exit;
+}
+
+add_action( 'init', 'chip_callback_room_status_update', 10, 0 );
+function chip_callback_room_status_update() {
+	if ( ! isset( $_GET['chip_tour_master'] ) ) {
+		return;
+	}
+
+	if ( 'callback_room_flow' !== $_GET['chip_tour_master'] ) {
+		return;
+	}
+
+	if ( ! isset( $_GET['timestamp'] ) ) {
+		exit( 'No timestamp' );
+	}
+
+	$tid = preg_replace( '/[^0-9]/', '', $_GET['tid'] );
+	$tid = absint( $tid );
+
+	global $wpdb;
+	$sql   = "SELECT id, contact_info, total_price, payment_info, currency, order_status FROM {$wpdb->prefix}tourmaster_room_order ";
+	$sql  .= $wpdb->prepare( 'WHERE id = %d', $tid );
+	$order = $wpdb->get_row( $sql );
+
+	if ( 'online-paid' === $order->order_status ) {
+		exit;
+	}
+
+	$payment_infos = json_decode( $order->payment_info, true );
+	if ( empty( $payment_infos ) || ! is_array( $payment_infos ) ) {
+		exit;
+	}
+
+	$payment_info = array();
+
+	foreach ( $payment_infos as $key => $pinfo ) {
+		if ( empty( $pinfo['transaction_id'] ) || empty( $pinfo['payment_method'] ) ) {
+			continue;
+		}
+
+		if ( absint( $_GET['timestamp'] ) == $pinfo['timestamp'] ) {
+			$payment_info = $pinfo;
+			break;
+		}
+	}
+
+	if ( empty( $payment_info ) ) {
+		exit;
+	}
+
+	if ( $payment_info['payment_method'] !== 'CHIP' ) {
+		exit;
+	}
+
+	$secret_key = trim( tourmaster_get_option( 'room-payment', 'chip-secret-key', '' ) );
+	$ten_secret_key = substr( $secret_key, 0, 10 );
+
+	if ( empty( $public_key = get_option( 'chip_tm_' . $ten_secret_key ) ) ) {
+		$chip       = new Chip_Travel_Tour_API( $secret_key, '' );
+		$public_key = str_replace( '\n', "\n", $chip->public_key() );
+		update_option( 'chip_tm_' . $ten_secret_key, $public_key );
+	}
+
+	$content = file_get_contents( 'php://input' );
+
+	if ( openssl_verify( $content, base64_decode( $_SERVER['HTTP_X_SIGNATURE'] ), $public_key, 'sha256WithRSAEncryption' ) != 1 ) {
+		exit( 'Invalid signature' );
+	}
+
+	$purchase = json_decode( $content, true );
+
+	if ( 'paid' !== $purchase['status'] ) {
+		exit;
+	}
+
+	$price = $purchase['payment']['amount'] / 100;
+
+	if ( ! empty( $order->currency ) ) {
+		$currency = json_decode( $order->currency, true );
+		$price    = $price / floatval( $currency['exchange-rate'] );
+	}
+
+	$new_payment_info = array(
+		'transaction_id'  => $purchase['id'],
+		'amount'          => $price,
+		'payment_method'  => 'CHIP',
+		'payment_status'  => $purchase['status'],
+		'submission_date' => current_time( 'mysql' ),
+		'timestamp'       => time(),
+	);
+
+	foreach ( $payment_infos as $key => $value ) {
+		if ( absint( $_GET['timestamp'] ) === $value['timestamp'] ) {
+			unset( $payment_infos[ $key ] );
+			break;
+		}
+	}
+
+	$payment_infos = array_values( $payment_infos );
+
+	$payment_infos[] = $new_payment_info;
+	$order_status    = tourmaster_room_payment_order_status( $order->total_price, $payment_infos, true );
+
+	$wpdb->update(
+		"{$wpdb->prefix}tourmaster_room_order",
+		array(
+			'payment_info' => wp_json_encode( $payment_infos ),
+			'order_status' => $order_status,
+		),
+		array( 'id' => $tid ),
+		array( '%s', '%s' ),
+		array( '%d' )
+	);
+
+	// send an email.
+	if ( $order_status == 'deposit-paid' ) {
+		tourmaster_room_mail_notification( 'deposit-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+		tourmaster_room_mail_notification( 'admin-deposit-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+	} elseif ( $order_status == 'approved' || $order_status == 'online-paid' ) {
+		tourmaster_room_mail_notification( 'payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+		tourmaster_room_mail_notification( 'admin-online-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+	}
+	tourmaster_room_send_email_invoice( $tid );
+
+	exit('Callback success');
 }
