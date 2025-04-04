@@ -61,7 +61,7 @@ if ( ! function_exists( 'chip_additional_payment_method' ) ) {
 
 		$ret  = '';
 		$ret .= '<div class="tourmaster-online-payment-method tourmaster-payment-paypal" >';
-		$ret .= '<img src="' . esc_attr( CTM_PLUGIN_URL ) . '/assets/paywithfpx.png" alt="chip" ';
+		$ret .= '<img width="170" height="76" src="' . esc_attr( CTM_PLUGIN_URL ) . '/assets/chip-payment.png" alt="chip" ';
 		if ( ! empty( $chip_button_atts['method'] ) && $chip_button_atts['method'] == 'ajax' ) {
 			$ret .= 'data-method="ajax" data-action="tourmaster_payment_selected" data-ajax="' . esc_url( TOURMASTER_AJAX_URL ) . '" ';
 			if ( ! empty( $chip_button_atts['type'] ) ) {
