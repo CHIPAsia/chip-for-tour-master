@@ -15,13 +15,23 @@
 
 add_action( 'plugins_loaded', 'ctm_load', 20 );
 
+/**
+ * Load the plugin.
+ *
+ * @since 1.0.0
+ */
 function ctm_load() {
 	define_ctm_static();
 	require CTM_PLUGIN_DIR . '/includes/chip-api.php';
-	require CTM_PLUGIN_DIR . '/includes/tour-master-main.php'; // Tour
-	require CTM_PLUGIN_DIR . '/includes/tour-master-room.php'; // Room
+	require CTM_PLUGIN_DIR . '/includes/tour-master-main.php'; // Tour module.
+	require CTM_PLUGIN_DIR . '/includes/tour-master-room.php'; // Room module.
 }
 
+/**
+ * Define constants for the plugin.
+ *
+ * @since 1.0.0
+ */
 function define_ctm_static() {
 	define( 'CTM_MODULE_VERSION', 'v1.0.0' );
 	define( 'CTM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );

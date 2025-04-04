@@ -55,7 +55,7 @@ function chip_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = tru
 		}
 
 		if ( empty( $price ) ) {
-			return esc_html__( 'Cannot retrieve pricing data, please try again.', 'tourmaster' );
+			return esc_html__( 'Cannot retrieve pricing data, please try again.', 'chip-for-tour-master' );
 
 			// Start the payment process
 		} else {
@@ -104,7 +104,7 @@ function chip_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = tru
 			$purchase = $chip->create_payment( $send_params );
 
 			if ( ! array_key_exists( 'id', $purchase ) ) {
-				return sprintf( esc_html__( 'Failed to create purchase. %s', 'tourmaster' ), wp_json_encode( $purchase, JSON_PRETTY_PRINT ) );
+				return sprintf( esc_html__( 'Failed to create purchase. %s', 'chip-for-tour-master' ), wp_json_encode( $purchase, JSON_PRETTY_PRINT ) );
 			}
 
 			$payment_info = array(
@@ -135,10 +135,10 @@ function chip_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = tru
 			?>
 			<div class="gdlr-core-purchase-form">
 				<div class="gdlr-core-purchase-form-title">
-					<?php esc_html_e( 'Redirecting to payment page...', 'tourmaster' ); ?>
+					<?php esc_html_e( 'Redirecting to payment page...', 'chip-for-tour-master' ); ?>
 				</div>
 				<div class="gdlr-core-purchase-form-content">
-					<?php esc_html_e( 'Please wait while we redirect you to the payment page.', 'tourmaster' ); ?>
+					<?php esc_html_e( 'Please wait while we redirect you to the payment page.', 'chip-for-tour-master' ); ?>
 				</div>
 				<script type="text/javascript">
 					window.location.href = '<?php echo $purchase['checkout_url']; ?>';
@@ -332,7 +332,7 @@ function chip_callback_room_status_update() {
 		exit;
 	}
 
-	$secret_key = trim( tourmaster_get_option( 'room_payment', 'chip-secret-key', '' ) );
+	$secret_key     = trim( tourmaster_get_option( 'room_payment', 'chip-secret-key', '' ) );
 	$ten_secret_key = substr( $secret_key, 0, 10 );
 
 	if ( empty( $public_key = get_option( 'chip_tm_' . $ten_secret_key ) ) ) {
@@ -402,5 +402,5 @@ function chip_callback_room_status_update() {
 	}
 	tourmaster_room_send_email_invoice( $tid );
 
-	exit('Callback success');
+	exit( 'Callback success' );
 }

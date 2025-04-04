@@ -3,7 +3,7 @@
 // add_filter( 'goodlayers_credit_card_payment_gateway_options', 'chip_pg_options' );
 if ( ! function_exists( 'chip_pg_options' ) ) {
 	function chip_pg_options( $options ) {
-		$options['chip'] = esc_html__( 'CHIP', 'tourmaster' );
+		$options['chip'] = esc_html__( 'CHIP', 'chip-for-tour-master' );
 
 		return $options;
 	}
@@ -15,25 +15,25 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 	function chip_payment_option( $options ) {
 
 		$options['chip'] = array(
-			'title'   => esc_html__( 'CHIP', 'tourmaster' ),
+			'title'   => esc_html__( 'CHIP', 'chip-for-tour-master' ),
 			'options' => array(
 				'chip-secret-key'    => array(
-					'title' => __( 'CHIP Secret Key', 'tourmaster' ),
+					'title' => __( 'CHIP Secret Key', 'chip-for-tour-master' ),
 					'type'  => 'text',
 				),
 				'chip-brand-id'      => array(
-					'title' => __( 'CHIP Brand ID', 'tourmaster' ),
+					'title' => __( 'CHIP Brand ID', 'chip-for-tour-master' ),
 					'type'  => 'text',
 				),
 				'chip-currency-code' => array(
-					'title'   => esc_html__( 'CHIP Currency Code', 'tourmaster' ),
+					'title'   => esc_html__( 'CHIP Currency Code', 'chip-for-tour-master' ),
 					'type'    => 'text',
 					'default' => 'MYR',
 				),
 			),
 		);
 
-		$options['payment-settings']['options']['payment-method']['options']['chip'] = esc_html__( 'CHIP', 'tourmaster' );
+		$options['payment-settings']['options']['payment-method']['options']['chip'] = esc_html__( 'CHIP', 'chip-for-tour-master' );
 
 		return $options;
 	}
@@ -70,7 +70,7 @@ if ( ! function_exists( 'chip_additional_payment_method' ) ) {
 		}
 		$ret .= ' />';
 		$ret .= '<div class="tourmaster-payment-paypal-service-fee-text" >';
-		$ret .= esc_html__( 'Pay with FPX, Card & E-Wallet.', 'tourmaster' );
+		$ret .= esc_html__( 'Pay with FPX, Card & E-Wallet.', 'chip-for-tour-master' );
 		$ret .= '</div>';
 		$ret .= '</div>';
 
@@ -101,11 +101,11 @@ if ( ! function_exists( 'tourmaster_chip_payment_form' ) ) {
 				data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
 				<div class="now-loading"></div>
 				<div class="payment-errors"></div>
-				<div class="goodlayers-payment-req-field"><?php esc_html_e( 'Please fill all required fields', 'tourmaster' ); ?>
+				<div class="goodlayers-payment-req-field"><?php esc_html_e( 'Please fill all required fields', 'chip-for-tour-master' ); ?>
 				</div>
 				<input type="hidden" name="tid" value="<?php echo esc_attr( $tid ); ?>" />
 				<input class="goodlayers-payment-button submit" type="submit"
-					value="<?php esc_html_e( 'Submit Payment', 'tourmaster' ); ?>" />
+					value="<?php esc_html_e( 'Submit Payment', 'chip-for-tour-master' ); ?>" />
 
 				<!-- for proceeding to last step -->
 				<div class="goodlayers-payment-plugin-complete"></div>
@@ -128,7 +128,7 @@ if ( ! function_exists( 'tourmaster_chip_payment_form' ) ) {
 							console.log(a, b, c);
 
 							// display error messages
-							form.find('.payment-errors').text('<?php echo esc_html__( 'An error occurs, please refresh the page to try again.', 'tourmaster' ); ?>').slideDown(200);
+							form.find('.payment-errors').text('<?php echo esc_html__( 'An error occurs, please refresh the page to try again.', 'chip-for-tour-master' ); ?>').slideDown(200);
 							form.find('.submit').prop('disabled', false).removeClass('now-loading');
 						},
 						success: function (data) {
@@ -210,13 +210,13 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 
 			if ( empty( $price ) ) {
 				$ret['status']  = 'failed';
-				$ret['message'] = esc_html__( 'Cannot retrieve pricing data, please try again.', 'tourmaster' );
+				$ret['message'] = esc_html__( 'Cannot retrieve pricing data, please try again.', 'chip-for-tour-master' );
 
 				// Start the payment process.
 			} elseif ( $currency_code != 'MYR' ) {
 				$ret['status'] = 'failed';
 				// translators: $curency_code is currency code.
-				$ret['message'] = sprintf( esc_html__( '%1$s is unsupported currency.', 'tourmaster' ), $currency_code );
+				$ret['message'] = sprintf( esc_html__( '%1$s is unsupported currency.', 'chip-for-tour-master' ), $currency_code );
 			} else {
 				$price = round( floatval( $price ) * 100 );
 
@@ -263,7 +263,7 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 
 				if ( ! array_key_exists( 'id', $purchase ) ) {
 					$ret['status']  = 'failed';
-					$ret['message'] = sprintf( esc_html__( 'Failed to create purchase. %s', 'tourmaster' ), wp_json_encode( $purchase, JSON_PRETTY_PRINT ) );
+					$ret['message'] = sprintf( esc_html__( 'Failed to create purchase. %s', 'chip-for-tour-master' ), wp_json_encode( $purchase, JSON_PRETTY_PRINT ) );
 					die( wp_json_encode( $ret ) );
 				}
 
