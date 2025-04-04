@@ -41,12 +41,6 @@ jobs:
       with:
         version: latest
 
-    - name: Install WordPress
-      run: |
-        wp core download --version=latest --path=/tmp/wordpress
-        wp config create --dbname=wordpress_tests --dbuser=root --dbpass=root --dbhost=127.0.0.1 --path=/tmp/wordpress
-        wp core install --url=http://example.com --title="Test" --admin_user=admin --admin_password=password --admin_email=admin@example.com --path=/tmp/wordpress
-    
     - name: Copy plugin to WordPress
       run: |
         mkdir -p /tmp/wordpress/wp-content/plugins/chip-for-tour-master
