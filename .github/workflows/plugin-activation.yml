@@ -40,6 +40,12 @@ jobs:
       uses: sjinks/setup-wordpress-test-library@master
       with:
         version: latest
+    
+    - name: Install WP-CLI
+      run: |
+        curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+        chmod +x wp-cli.phar
+        sudo mv wp-cli.phar /usr/local/bin/wp
 
     - name: Copy plugin to WordPress
       run: |
