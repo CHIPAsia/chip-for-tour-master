@@ -15,6 +15,8 @@ This module adds CHIP payment method option to your [Tour Master](https://codeca
 
 Set the **Brand ID** and **Secret Key** in the plugins settings.
 
+For currency settings, set the value to **MYR**.
+
 Additional configuration are required at the moment until Tour Master add action hooks and filters.
 
 * Edit file: _wp-content/plugins/tourmaster/room/include/_***payment-element.php***
