@@ -23,13 +23,13 @@ Additional configuration are required at the moment until Tour Master add action
   * Add `in_array( 'chip', $payment_method )` in line:
 
   ```php
-    } elseif ( in_array( 'paypal', $payment_method ) || in_array( 'credit-card', $payment_method ) || in_array( 'hipayprofessional', $payment_method ) ) {
+  } elseif ( in_array( 'paypal', $payment_method ) || in_array( 'credit-card', $payment_method ) || in_array( 'hipayprofessional', $payment_method ) ) {
   ```
 
   * Full line example as follows:
 
   ```php
-    } elseif ( in_array( 'chip', $payment_method ) || in_array( 'paypal', $payment_method ) || in_array( 'credit-card', $payment_method ) || in_array( 'hipayprofessional',$payment_method ) ) {
+  } elseif ( in_array( 'chip', $payment_method ) || in_array( 'paypal', $payment_method ) || in_array( 'credit-card', $payment_method ) || in_array( 'hipayprofessional',$payment_method ) ) {
   ```
 
   * Add `'chip' => esc_html__( 'CHIP', 'tourmaster' ),` in `$payment_titles` variable.
@@ -37,12 +37,12 @@ Additional configuration are required at the moment until Tour Master add action
   * Full line example as follows:
 
   ```php
-    $payments_title = array(
-      'paypal'            => esc_html__( 'Paypal', 'tourmaster' ),
-      'credit-card'       => esc_html__( 'Credit Card', 'tourmaster' ),
-      'hipayprofessional' => esc_html__( 'Hipay Professional','tourmaster' ),
-      'chip'              => esc_html__( 'CHIP', 'tourmaster' ),
-    );
+  $payments_title = array(
+    'paypal'            => esc_html__( 'Paypal', 'tourmaster' ),
+    'credit-card'       => esc_html__( 'Credit Card', 'tourmaster' ),
+    'hipayprofessional' => esc_html__( 'Hipay Professional','tourmaster' ),
+    'chip'              => esc_html__( 'CHIP', 'tourmaster' ),
+  );
   ```
 
 ## Screenshot
