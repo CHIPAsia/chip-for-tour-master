@@ -545,3 +545,9 @@ function chip_callback_status_update() {
 
 	exit( 'Callback success' );
 }
+
+add_filter( 'tourmaster_custom_payment_enable', 'chip_tm_custom_payment_enable', 10, 2 );
+
+function chip_tm_custom_payment_enable( $status, $payment_method ) {
+	return in_array( 'chip', $payment_method );
+}
