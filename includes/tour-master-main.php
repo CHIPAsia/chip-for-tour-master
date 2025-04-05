@@ -274,6 +274,8 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 					);
 				}
 
+				$send_params = apply_filters( 'tourmaster_chip_payment_send_params_tour', $send_params, $tid );
+
 				$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
 				$purchase = $chip->create_payment( $send_params );
 
