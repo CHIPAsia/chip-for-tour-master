@@ -575,3 +575,19 @@ add_filter( 'tourmaster_custom_payment_enable', 'chip_tm_custom_payment_enable',
 function chip_tm_custom_payment_enable( $status, $payment_method ) {
 	return in_array( 'chip', $payment_method );
 }
+
+add_filter( 'tourmaster_room_payment_methods', 'add_chip_to_room_payment_methods', 10, 1 );
+
+/**
+ * Add CHIP to room payment methods
+ *
+ * @param array $payments_title Payment method title.
+ *
+ * @return array
+ */
+function add_chip_to_room_payment_methods( $payments_title ) {
+
+	$payments_title['chip'] = esc_html__( 'CHIP', 'chip-for-tour-master' );
+
+	return $payments_title;
+}
