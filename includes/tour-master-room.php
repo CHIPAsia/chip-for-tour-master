@@ -422,3 +422,20 @@ function chip_callback_room_status_update() {
 
 	exit( 'Callback success' );
 }
+
+add_filter( 'tourmaster_room_payment_methods', 'add_chip_to_room_payment_methods', 10, 1 );
+
+/**
+ * Add CHIP to room payment methods
+ *
+ * @param array $payments_title Payment method title.
+ *
+ * @return array
+ */
+function add_chip_to_room_payment_methods( $payments_title ) {
+
+	$payment_method = tourmaster_get_option('payment', 'payment-method', array());
+	$payments_title['chip'] = esc_html__( 'CHIP', 'chip-for-tour-master' );
+
+	return $payments_title;
+}
