@@ -574,6 +574,34 @@ function chip_callback_status_update() {
 
 add_filter( 'tourmaster_custom_payment_enable', 'chip_tm_custom_payment_enable', 10, 2 );
 
+/**
+ * Enable CHIP payment method
+ *
+ * @param bool   $status         Payment status.
+ * @param string $payment_method Payment method.
+ *
+ * @return bool
+ */
 function chip_tm_custom_payment_enable( $status, $payment_method ) {
-	return in_array( 'chip', $payment_method );
+	if ( $status ) {
+		return true;
+	}
+	return in_array( 'chip', $payment_method, true );
+}
+
+add_filter( 'tourmaster_custom_payment_selection', 'chip_tm_custom_payment_selection', 10, 2 );
+/** Add CHIP payment method to the payment selection.
+ *
+ * @param string $ret           The current payment method.
+ * @param array  $payment_method The selected payment methods.
+ *
+ * @return string The updated payment method.
+ */
+function chip_tm_custom_payment_selection( $ret, $payment_method ) {
+	$chip_enable = in_array( 'chip', $payment_method, true );
+	if ( $chip_enable ) {
+		$chip_button_atts = apply_filters( 'tourmaster_chip_button_atts', array() );
+		$ret             .= '<option value="' . esc_attr( $chip_button_atts['type'] ) . '">' . esc_html__( 'CHIP', 'chip-for-tour-master' ) . '</option>';
+	}
+	return $ret;
 }

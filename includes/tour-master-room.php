@@ -436,8 +436,25 @@ add_filter( 'tourmaster_room_payment_methods', 'add_chip_to_room_payment_methods
  */
 function add_chip_to_room_payment_methods( $payments_title ) {
 
-	$payment_method = tourmaster_get_option('payment', 'payment-method', array());
+	$payment_method         = tourmaster_get_option( 'payment', 'payment-method', array() );
 	$payments_title['chip'] = esc_html__( 'CHIP', 'chip-for-tour-master' );
 
 	return $payments_title;
+}
+
+add_filter( 'tourmaster_room_custom_payment_enable', 'chip_tm_room_custom_payment_enable', 10, 2 );
+
+/**
+ * Enable CHIP payment method
+ *
+ * @param bool   $status         Payment status.
+ * @param string $payment_method Payment method.
+ *
+ * @return bool
+ */
+function chip_tm_room_custom_payment_enable( $status, $payment_method ) {
+	if ( $status ) {
+		return true;
+	}
+	return in_array( 'chip', $payment_method, true );
 }
