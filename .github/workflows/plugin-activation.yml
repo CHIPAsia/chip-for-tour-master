@@ -51,7 +51,7 @@ jobs:
     - name: Copy plugin to WordPress
       run: |
         mkdir -p /tmp/wordpress/wp-content/plugins/chip-for-tour-master
-        cp -R . /tmp/wordpress/wp-content/plugins/chip-for-tour-master/
+        rsync -av --exclude='.git' . /tmp/wordpress/wp-content/plugins/chip-for-tour-master/
     
     - name: Test plugin activation
       run: |
