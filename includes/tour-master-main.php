@@ -25,6 +25,28 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 					'title' => __( 'CHIP Brand ID', 'chip-for-tour-master' ),
 					'type'  => 'text',
 				),
+				'chip-logo'           => array(
+					'title'       => __( 'Accepted Payment Type Logo', 'chip-for-tour-master' ),
+					'type'        => 'multi-combobox',
+					'options'     => array(
+						'fpx'         => esc_html__( 'FPX', 'chip-for-tour-master' ),
+						'duitnow_qr'  => esc_html__( 'QR Payment', 'chip-for-tour-master' ),
+						'visa'        => esc_html__( 'Visa', 'chip-for-tour-master' ),
+						'master-card' => esc_html__( 'Master Card', 'chip-for-tour-master' ),
+						'tng'         => esc_html__( 'TnG', 'chip-for-tour-master' ),
+						'grabpay'     => esc_html__( 'GrabPay', 'chip-for-tour-master' ),
+						'maybank_qr'  => esc_html__( 'Maybank QR', 'chip-for-tour-master' ),
+						'shopeepay'   => esc_html__( 'ShopeePay', 'chip-for-tour-master' ),
+						'atome'       => esc_html__( 'Atome', 'chip-for-tour-master' ),
+					),
+					'default'     => array( 'fpx', 'duitnow_qr', 'visa', 'master-card' ),
+					'description' => esc_html__( 'Only display images below CHIP option.', 'chip-for-tour-master' ),
+				),
+				'chip-msg-checkout'   => array(
+					'title'       => __( 'Message', 'chip-for-tour-master' ),
+					'type'        => 'text',
+					'description' => esc_html__( 'Message on checkout page.', 'chip-for-tour-master' ),
+				),
 				'chip-currency-code'  => array(
 					'title'   => esc_html__( 'CHIP Currency Code', 'chip-for-tour-master' ),
 					'type'    => 'text',
@@ -66,7 +88,7 @@ if ( ! function_exists( 'chip_additional_payment_method' ) ) {
 		$chip_button_atts = apply_filters( 'tourmaster_chip_button_atts', array() );
 
 		$ret  = '';
-		$ret .= '<div class="tourmaster-online-payment-method tourmaster-payment-paypal" >';
+		$ret .= '<div class="tourmaster-online-payment-method tourmaster-payment-paypal">';
 		$ret .= '<img width="170" height="76" src="' . esc_attr( CTM_PLUGIN_URL ) . '/assets/chip-payment.png" alt="chip" ';
 		if ( ! empty( $chip_button_atts['method'] ) && $chip_button_atts['method'] == 'ajax' ) {
 			$ret .= 'data-method="ajax" data-action="tourmaster_payment_selected" data-ajax="' . esc_url( TOURMASTER_AJAX_URL ) . '" ';
@@ -75,9 +97,27 @@ if ( ! function_exists( 'chip_additional_payment_method' ) ) {
 			}
 		}
 		$ret .= ' />';
-		$ret .= '<div class="tourmaster-payment-paypal-service-fee-text" >';
-		$ret .= esc_html__( 'Pay with FPX, Card & E-Wallet.', 'chip-for-tour-master' );
-		$ret .= '</div>';
+
+		$payment_types = tourmaster_get_option( 'payment', 'chip-logo', array() );
+		if ( ! empty( $payment_types ) ) {
+			$ret .= '<div class="tourmaster-payment-credit-card-type" >';
+			foreach ( $payment_types as $type ) {
+				if ( in_array( $type, array( 'visa', 'master-card' ), true ) ) {
+					$ret .= '<img src="' . esc_attr( TOURMASTER_URL ) . '/images/' . esc_attr( $type ) . '.png" alt="' . esc_attr( $type ) . '" />';
+				} else {
+					$ret .= '<img src="' . esc_attr( CTM_PLUGIN_URL ) . '/assets/' . esc_attr( $type ) . '.png" alt="' . esc_attr( $type ) . '" />';
+				}
+			}
+			$ret .= '</div>';
+		}
+
+		$checkout_message = tourmaster_get_option( 'payment', 'chip-msg-checkout', '' );
+		if ( ! empty( $checkout_message ) ) {
+			$ret .= '<div class="tourmaster-payment-paypal-service-fee-text" >';
+			$ret .= esc_html( $checkout_message );
+			$ret .= '</div>';
+		}
+
 		$ret .= '</div>';
 
 		return $ret;
