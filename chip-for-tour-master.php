@@ -6,9 +6,13 @@
  * Version: 1.0.1
  * Author: Chip In Sdn Bhd
  * Author URI: https://chip-in.asia
+ * Requires at least: 6.1
+ * Requires PHP: 8.1
+ *
  * License: GNU General Public License v3.0
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Copyright: © 2025 Chip In Sdn Bhd
+ *
  *
  * @package Chip for Tour Master
  */
