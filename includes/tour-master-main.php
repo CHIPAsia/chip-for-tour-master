@@ -102,11 +102,7 @@ if ( ! function_exists( 'chip_additional_payment_method' ) ) {
 		if ( ! empty( $payment_types ) ) {
 			$ret .= '<div class="tourmaster-payment-credit-card-type" >';
 			foreach ( $payment_types as $type ) {
-				if ( in_array( $type, array( 'visa', 'master-card' ), true ) ) {
-					$ret .= '<img src="' . esc_attr( TOURMASTER_URL ) . '/images/' . esc_attr( $type ) . '.png" alt="' . esc_attr( $type ) . '" />';
-				} else {
-					$ret .= '<img src="' . esc_attr( CTM_PLUGIN_URL ) . '/assets/' . esc_attr( $type ) . '.png" alt="' . esc_attr( $type ) . '" />';
-				}
+				$ret .= '<img style="height: 23px !important;" src="' . esc_attr( CTM_PLUGIN_URL ) . '/assets/' . esc_attr( $type ) . '.png" alt="' . esc_attr( $type ) . '" />';
 			}
 			$ret .= '</div>';
 		}
