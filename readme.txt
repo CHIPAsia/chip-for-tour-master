@@ -1,9 +1,9 @@
 === CHIP for Tour Master ===
 Contributors: chipasia, wanzulnet
 Tags: chip
-Requires at least: 4.7
-Tested up to: 6.7
-Stable tag: 1.0.0
+Requires at least: 6.1
+Tested up to: 6.8
+Stable tag: 1.0.1
 Requires PHP: 8.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,8 +28,8 @@ This plugin will enable your Tour Master site to be integrated with CHIP as per 
 
 == Changelog ==
 
-= 1.0.0 - 2025-04-04 =
-* New - Initial Release
+= 1.0.1 - 2025-04-30 =
+* New - Add option for merchant to set icon for Tour checkout
 
 [See changelog for all versions](https://raw.githubusercontent.com/CHIPAsia/chip-for-tour-master/main/changelog.txt).
 
