@@ -1,4 +1,7 @@
 == Changelog ==
 
+= 1.0.1 - 2025-04-30 =
+* New - Add option for merchant to set icon for Tour checkout
+
 = 1.0.0 - 2025-04-04 =
 * New - Initial Release
