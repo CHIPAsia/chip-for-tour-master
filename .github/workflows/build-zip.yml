@@ -23,5 +23,5 @@ jobs:
           echo "Detected version: ${VERSION}"
         
       - name: Create zip file
-        run: ${{ github.action_path }}/build-zip.sh
+        run: bash .github/workflows/build-zip.sh
           
