@@ -23,45 +23,5 @@ jobs:
           echo "Detected version: ${VERSION}"
         
       - name: Create zip file
-        run: |
-          # Create a temporary directory
-          mkdir -p tmp/chip-for-tour-master
+        run: ${{ github.action_path }}/build-zip.sh
           
-          # Copy all files except those in .distignore
-          if [ -f .distignore ]; then
-            rsync -rc --exclude-from=".distignore" . tmp/chip-for-tour-master --delete
-          else
-            rsync -rc --exclude='.git/' \
-              --exclude='.github/' \
-              --exclude='.distignore' \
-              --exclude='.gitignore' \
-              --exclude='.editorconfig' \
-              --exclude='.phpcs.xml' \
-              --exclude='node_modules/' \
-              --exclude='tests/' \
-              --exclude='*.zip' \
-              . tmp/chip-for-tour-master
-          fi
-          
-          # Create the zip file
-          cd tmp && zip -r ../chip-for-tour-master-${{ steps.plugin-version.outputs.version }}.zip chip-for-tour-master
-
-          echo "zip-path=${GITHUB_WORKSPACE}/chip-for-tour-master-${steps.plugin-version.outputs.version}.zip" >> "${GITHUB_OUTPUT}"
-          echo "✓ Zip file generated!"
-          
-          # Clean up
-          cd .. && rm -rf tmp
-          
-          # Show the created file
-          ls -la *.zip
-        # Replace 'chip-for-tour-master' with your actual plugin slug
-        
-      - name: Upload release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./chip-for-tour-master-${{ steps.plugin-version.outputs.version }}.zip
-          asset_name: chip-for-tour-master-${{ steps.plugin-version.outputs.version }}.zip
-          asset_content_type: application/zip
