@@ -30,7 +30,7 @@ jobs:
               --exclude='node_modules/' \
               --exclude='tests/' \
               --exclude='*.zip' \
-							--exclude='tmp/' \
+              --exclude='tmp/' \
               . tmp/chip-for-tour-master
           fi
 
