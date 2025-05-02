@@ -40,5 +40,5 @@ jobs:
       - name: Upload ZIP as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: plugin-zip
+          name: chip-for-tour-master
           path: chip-for-tour-master.zip

@@ -1,0 +1,27 @@
+# Development files
+.git/
+.github/
+.gitignore
+.editorconfig
+.phpcs.xml
+composer.json
+composer.lock
+package.json
+package-lock.json
+webpack.config.js
+
+# Tests
+tests/
+phpunit.xml
+
+# Documentation
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+
+# IDE files
+.idea/
+.vscode/
+
+# Build artifacts
+*.zip
