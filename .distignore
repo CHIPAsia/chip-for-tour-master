@@ -9,6 +9,7 @@ composer.lock
 package.json
 package-lock.json
 webpack.config.js
+tmp/
 
 # Tests
 tests/
