@@ -1,8 +1,10 @@
 name: Build WordPress Plugin Release
 
 on:
-  release:
-    types: [created]
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -43,6 +45,9 @@ jobs:
           
           # Create the zip file
           cd tmp && zip -r ../chip-for-tour-master-${{ steps.plugin-version.outputs.version }}.zip chip-for-tour-master
+
+          echo "zip-path=${GITHUB_WORKSPACE}/chip-for-tour-master-${steps.plugin-version.outputs.version}.zip" >> "${GITHUB_OUTPUT}"
+          echo "✓ Zip file generated!"
           
           # Clean up
           cd .. && rm -rf tmp
