@@ -38,7 +38,7 @@ jobs:
           cd .. && rm -rf tmp
 
       - name: Upload ZIP as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: plugin-zip
           path: chip-for-tour-master.zip
