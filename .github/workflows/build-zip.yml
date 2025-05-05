@@ -1,0 +1,45 @@
+name: Build WordPress Plugin Zip
+
+on:
+  push:
+    branches: [ main ]  # Runs on push to main/master branch
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-zip:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create ZIP (using .distignore)
+        run: |
+          mkdir -p tmp/chip-for-tour-master
+          
+          # Copy only files NOT listed in .distignore
+          if [ -f .distignore ]; then
+            rsync -rc --exclude-from=".distignore" . tmp/chip-for-tour-master --delete
+          else
+            # Default excludes (if no .distignore exists)
+            rsync -rc --exclude='.git/' \
+              --exclude='.github/' \
+              --exclude='.distignore' \
+              --exclude='.gitignore' \
+              --exclude='node_modules/' \
+              --exclude='tests/' \
+              --exclude='*.zip' \
+              --exclude='tmp/' \
+              . tmp/chip-for-tour-master
+          fi
+
+          # Create ZIP
+          cd tmp && zip -r ../chip-for-tour-master.zip chip-for-tour-master
+          cd .. && rm -rf tmp
+
+      - name: Upload ZIP as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chip-for-tour-master
+          path: chip-for-tour-master.zip
