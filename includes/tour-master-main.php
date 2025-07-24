@@ -74,6 +74,15 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 					'title' => __( 'CHIP Brand ID', 'chip-for-tour-master' ),
 					'type'  => 'text',
 				),
+				'chip-fpx-logo'           => array(
+					'title'       => __( 'Accepted Payment Type Logo', 'chip-for-tour-master' ),
+					'type'        => 'multi-combobox',
+					'options'     => array(
+						'fpx'         => esc_html__( 'FPX', 'chip-for-tour-master' ),
+					),
+					'default'     => array( 'fpx' ),
+					'description' => esc_html__( 'Only display images below CHIP option.', 'chip-for-tour-master' ),
+				),
 				'chip-fpx-msg-checkout'   => array(
 					'title'       => __( 'Message', 'chip-for-tour-master' ),
 					'type'        => 'text',
@@ -104,6 +113,15 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 				'chip-fpx-corporate-brand-id'       => array(
 					'title' => __( 'CHIP Brand ID', 'chip-for-tour-master' ),
 					'type'  => 'text',
+				),
+				'chip-fpx-corporate-logo'           => array(
+					'title'       => __( 'Accepted Payment Type Logo', 'chip-for-tour-master' ),
+					'type'        => 'multi-combobox',
+					'options'     => array(
+						'fpx'         => esc_html__( 'FPX', 'chip-for-tour-master' ),
+					),
+					'default'     => array( 'fpx' ),
+					'description' => esc_html__( 'Only display images below CHIP option.', 'chip-for-tour-master' ),
 				),
 				'chip-fpx-corporate-msg-checkout'   => array(
 					'title'       => __( 'Message', 'chip-for-tour-master' ),
@@ -136,6 +154,16 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 					'title' => __( 'CHIP Brand ID', 'chip-for-tour-master' ),
 					'type'  => 'text',
 				),
+				'chip-card-logo'           => array(
+					'title'       => __( 'Accepted Payment Type Logo', 'chip-for-tour-master' ),
+					'type'        => 'multi-combobox',
+					'options'     => array(
+						'visa'        => esc_html__( 'Visa', 'chip-for-tour-master' ),
+						'master-card' => esc_html__( 'Master Card', 'chip-for-tour-master' ),
+					),
+					'default'     => array( 'visa', 'master-card' ),
+					'description' => esc_html__( 'Only display images below CHIP option.', 'chip-for-tour-master' ),
+				),
 				'chip-card-msg-checkout'   => array(
 					'title'       => __( 'Message', 'chip-for-tour-master' ),
 					'type'        => 'text',
@@ -166,6 +194,18 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 				'chip-ewallet-brand-id'       => array(
 					'title' => __( 'CHIP Brand ID', 'chip-for-tour-master' ),
 					'type'  => 'text',
+				),
+				'chip-ewallet-logo'           => array(
+					'title'       => __( 'Accepted Payment Type Logo', 'chip-for-tour-master' ),
+					'type'        => 'multi-combobox',
+					'options'     => array(
+						'tng'         => esc_html__( 'TnG', 'chip-for-tour-master' ),
+						'grabpay'     => esc_html__( 'GrabPay', 'chip-for-tour-master' ),
+						'maybank_qr'  => esc_html__( 'Maybank QR', 'chip-for-tour-master' ),
+						'shopeepay'   => esc_html__( 'ShopeePay', 'chip-for-tour-master' ),
+					),
+					'default'     => array( 'tng', 'grabpay', 'maybank_qr', 'shopeepay' ),
+					'description' => esc_html__( 'Only display images below CHIP option.', 'chip-for-tour-master' ),
 				),
 				'chip-ewallet-msg-checkout'   => array(
 					'title'       => __( 'Message', 'chip-for-tour-master' ),
@@ -198,6 +238,15 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 					'title' => __( 'CHIP Brand ID', 'chip-for-tour-master' ),
 					'type'  => 'text',
 				),
+				'chip-atome-logo'           => array(
+					'title'       => __( 'Accepted Payment Type Logo', 'chip-for-tour-master' ),
+					'type'        => 'multi-combobox',
+					'options'     => array(
+						'atome'       => esc_html__( 'Atome', 'chip-for-tour-master' ),
+					),
+					'default'     => array( 'atome' ),
+					'description' => esc_html__( 'Only display images below CHIP option.', 'chip-for-tour-master' ),
+				),
 				'chip-atome-msg-checkout'   => array(
 					'title'       => __( 'Message', 'chip-for-tour-master' ),
 					'type'        => 'text',
@@ -228,6 +277,15 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 				'chip-duitnow-qr-brand-id'       => array(
 					'title' => __( 'CHIP Brand ID', 'chip-for-tour-master' ),
 					'type'  => 'text',
+				),
+				'chip-duitnow-qr-logo'           => array(
+					'title'       => __( 'Accepted Payment Type Logo', 'chip-for-tour-master' ),
+					'type'        => 'multi-combobox',
+					'options'     => array(
+						'duitnow_qr'  => esc_html__( 'QR Payment', 'chip-for-tour-master' ),
+					),
+					'default'     => array( 'duitnow_qr' ),
+					'description' => esc_html__( 'Only display images below CHIP option.', 'chip-for-tour-master' ),
 				),
 				'chip-duitnow-qr-msg-checkout'   => array(
 					'title'       => __( 'Message', 'chip-for-tour-master' ),
@@ -276,23 +334,23 @@ add_action( 'wp_ajax_chip_payment_charge', 'chip_create_purchase' );
 add_action( 'wp_ajax_nopriv_chip_payment_charge', 'chip_create_purchase' );
 
 // Add AJAX handlers for new payment methods
-add_action( 'wp_ajax_chip_fpx_payment_charge', 'chip_fpx_create_purchase' );
-add_action( 'wp_ajax_nopriv_chip_fpx_payment_charge', 'chip_fpx_create_purchase' );
+add_action( 'wp_ajax_chip-fpx_payment_charge', 'chip_fpx_create_purchase' );
+add_action( 'wp_ajax_nopriv_chip-fpx_payment_charge', 'chip_fpx_create_purchase' );
 
-add_action( 'wp_ajax_chip_fpx_corporate_payment_charge', 'chip_fpx_corporate_create_purchase' );
-add_action( 'wp_ajax_nopriv_chip_fpx_corporate_payment_charge', 'chip_fpx_corporate_create_purchase' );
+add_action( 'wp_ajax_chip-fpx-corporate_payment_charge', 'chip_fpx_corporate_create_purchase' );
+add_action( 'wp_ajax_nopriv_chip-fpx-corporate_payment_charge', 'chip_fpx_corporate_create_purchase' );
 
-add_action( 'wp_ajax_chip_card_payment_charge', 'chip_card_create_purchase' );
-add_action( 'wp_ajax_nopriv_chip_card_payment_charge', 'chip_card_create_purchase' );
+add_action( 'wp_ajax_chip-card_payment_charge', 'chip_card_create_purchase' );
+add_action( 'wp_ajax_nopriv_chip-card_payment_charge', 'chip_card_create_purchase' );
 
-add_action( 'wp_ajax_chip_ewallet_payment_charge', 'chip_ewallet_create_purchase' );
-add_action( 'wp_ajax_nopriv_chip_ewallet_payment_charge', 'chip_ewallet_create_purchase' );
+add_action( 'wp_ajax_chip-ewallet_payment_charge', 'chip_ewallet_create_purchase' );
+add_action( 'wp_ajax_nopriv_chip-ewallet_payment_charge', 'chip_ewallet_create_purchase' );
 
-add_action( 'wp_ajax_chip_atome_payment_charge', 'chip_atome_create_purchase' );
-add_action( 'wp_ajax_nopriv_chip_atome_payment_charge', 'chip_atome_create_purchase' );
+add_action( 'wp_ajax_chip-atome_payment_charge', 'chip_atome_create_purchase' );
+add_action( 'wp_ajax_nopriv_chip-atome_payment_charge', 'chip_atome_create_purchase' );
 
-add_action( 'wp_ajax_chip_duitnow_qr_payment_charge', 'chip_duitnow_qr_create_purchase' );
-add_action( 'wp_ajax_nopriv_chip_duitnow_qr_payment_charge', 'chip_duitnow_qr_create_purchase' );
+add_action( 'wp_ajax_chip-duitnow-qr_payment_charge', 'chip_duitnow_qr_create_purchase' );
+add_action( 'wp_ajax_nopriv_chip-duitnow-qr_payment_charge', 'chip_duitnow_qr_create_purchase' );
 
 add_filter( 'tourmaster_additional_payment_method', 'chip_additional_payment_method' );
 
@@ -378,17 +436,17 @@ if ( ! function_exists( 'chip_get_payment_logos' ) ) {
 			case 'chip':
 				return tourmaster_get_option( 'payment', 'chip-logo', array() );
 			case 'chip-fpx':
-				return array( 'fpx' );
+				return tourmaster_get_option( 'payment', 'chip-fpx-logo', array( 'fpx' ) );
 			case 'chip-fpx-corporate':
-				return array( 'fpx' );
+				return tourmaster_get_option( 'payment', 'chip-fpx-corporate-logo', array( 'fpx' ) );
 			case 'chip-card':
-				return array( 'visa', 'master-card' );
+				return tourmaster_get_option( 'payment', 'chip-card-logo', array( 'visa', 'master-card' ) );
 			case 'chip-ewallet':
-				return array( 'tng', 'grabpay', 'maybank_qr', 'shopeepay' );
+				return tourmaster_get_option( 'payment', 'chip-ewallet-logo', array( 'tng', 'grabpay', 'maybank_qr', 'shopeepay' ) );
 			case 'chip-atome':
-				return array( 'atome' );
+				return tourmaster_get_option( 'payment', 'chip-atome-logo', array( 'atome' ) );
 			case 'chip-duitnow-qr':
-				return array( 'duitnow_qr' );
+				return tourmaster_get_option( 'payment', 'chip-duitnow-qr-logo', array( 'duitnow_qr' ) );
 			default:
 				return array();
 		}
@@ -490,45 +548,45 @@ if ( ! function_exists( 'tourmaster_chip_payment_form' ) ) {
 }
 
 // Add payment forms for new payment methods
-add_filter( 'goodlayers_chip_fpx_payment_form', 'tourmaster_chip_fpx_payment_form', 10, 2 );
+add_filter( 'goodlayers_chip-fpx_payment_form', 'tourmaster_chip_fpx_payment_form', 10, 2 );
 if ( ! function_exists( 'tourmaster_chip_fpx_payment_form' ) ) {
 	function tourmaster_chip_fpx_payment_form( $ret = '', $tid = '' ) {
-		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip_fpx_payment_charge' );
+		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip-fpx_payment_charge' );
 	}
 }
 
-add_filter( 'goodlayers_chip_fpx_corporate_payment_form', 'tourmaster_chip_fpx_corporate_payment_form', 10, 2 );
+add_filter( 'goodlayers_chip-fpx-corporate_payment_form', 'tourmaster_chip_fpx_corporate_payment_form', 10, 2 );
 if ( ! function_exists( 'tourmaster_chip_fpx_corporate_payment_form' ) ) {
 	function tourmaster_chip_fpx_corporate_payment_form( $ret = '', $tid = '' ) {
-		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip_fpx_corporate_payment_charge' );
+		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip-fpx-corporate_payment_charge' );
 	}
 }
 
-add_filter( 'goodlayers_chip_card_payment_form', 'tourmaster_chip_card_payment_form', 10, 2 );
+add_filter( 'goodlayers_chip-card_payment_form', 'tourmaster_chip_card_payment_form', 10, 2 );
 if ( ! function_exists( 'tourmaster_chip_card_payment_form' ) ) {
 	function tourmaster_chip_card_payment_form( $ret = '', $tid = '' ) {
-		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip_card_payment_charge' );
+		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip-card_payment_charge' );
 	}
 }
 
-add_filter( 'goodlayers_chip_ewallet_payment_form', 'tourmaster_chip_ewallet_payment_form', 10, 2 );
+add_filter( 'goodlayers_chip-ewallet_payment_form', 'tourmaster_chip_ewallet_payment_form', 10, 2 );
 if ( ! function_exists( 'tourmaster_chip_ewallet_payment_form' ) ) {
 	function tourmaster_chip_ewallet_payment_form( $ret = '', $tid = '' ) {
-		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip_ewallet_payment_charge' );
+		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip-ewallet_payment_charge' );
 	}
 }
 
-add_filter( 'goodlayers_chip_atome_payment_form', 'tourmaster_chip_atome_payment_form', 10, 2 );
+add_filter( 'goodlayers_chip-atome_payment_form', 'tourmaster_chip_atome_payment_form', 10, 2 );
 if ( ! function_exists( 'tourmaster_chip_atome_payment_form' ) ) {
 	function tourmaster_chip_atome_payment_form( $ret = '', $tid = '' ) {
-		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip_atome_payment_charge' );
+		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip-atome_payment_charge' );
 	}
 }
 
-add_filter( 'goodlayers_chip_duitnow_qr_payment_form', 'tourmaster_chip_duitnow_qr_payment_form', 10, 2 );
+add_filter( 'goodlayers_chip-duitnow-qr_payment_form', 'tourmaster_chip_duitnow_qr_payment_form', 10, 2 );
 if ( ! function_exists( 'tourmaster_chip_duitnow_qr_payment_form' ) ) {
 	function tourmaster_chip_duitnow_qr_payment_form( $ret = '', $tid = '' ) {
-		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip_duitnow_qr_payment_charge' );
+		return tourmaster_chip_payment_form_generic( $ret, $tid, 'chip-duitnow-qr_payment_charge' );
 	}
 }
 

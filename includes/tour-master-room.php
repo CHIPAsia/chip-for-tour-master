@@ -3,24 +3,17 @@
 add_filter( 'goodlayers_room_chip_payment_form', 'chip_create_purchase_room', 10, 3 );
 
 // Add AJAX handlers for new room payment methods
-add_action( 'wp_ajax_chip_fpx_room_payment_charge', 'chip_fpx_create_purchase_room' );
-add_action( 'wp_ajax_nopriv_chip_fpx_room_payment_charge', 'chip_fpx_create_purchase_room' );
+add_action( 'goodlayers_room_chip-fpx_payment_form', 'chip_fpx_create_purchase_room', 10, 3 );
 
-add_action( 'wp_ajax_chip_fpx_corporate_room_payment_charge', 'chip_fpx_corporate_create_purchase_room' );
-add_action( 'wp_ajax_nopriv_chip_fpx_corporate_room_payment_charge', 'chip_fpx_corporate_create_purchase_room' );
+add_action( 'goodlayers_room_chip-fpx-corporate_payment_form', 'chip_fpx_corporate_create_purchase_room', 10, 3 );
 
-add_action( 'wp_ajax_chip_card_room_payment_charge', 'chip_card_create_purchase_room' );
-add_action( 'wp_ajax_nopriv_chip_card_room_payment_charge', 'chip_card_create_purchase_room' );
+add_action( 'goodlayers_room_chip-card_payment_form', 'chip_card_create_purchase_room', 10, 3 );
 
-add_action( 'wp_ajax_chip_ewallet_room_payment_charge', 'chip_ewallet_create_purchase_room' );
-add_action( 'wp_ajax_nopriv_chip_ewallet_room_payment_charge', 'chip_ewallet_create_purchase_room' );
+add_action( 'goodlayers_room_chip-ewallet_payment_form', 'chip_ewallet_create_purchase_room', 10, 3 );
 
-add_action( 'wp_ajax_chip_atome_room_payment_charge', 'chip_atome_create_purchase_room' );
-add_action( 'wp_ajax_nopriv_chip_atome_room_payment_charge', 'chip_atome_create_purchase_room' );
+add_action( 'goodlayers_room_chip-atome_payment_form', 'chip_atome_create_purchase_room', 10, 3 );
 
-add_action( 'wp_ajax_chip_duitnow_qr_room_payment_charge', 'chip_duitnow_qr_create_purchase_room' );
-add_action( 'wp_ajax_nopriv_chip_duitnow_qr_room_payment_charge', 'chip_duitnow_qr_create_purchase_room' );
-
+add_action( 'goodlayers_room_chip-duitnow-qr_payment_form', 'chip_duitnow_qr_create_purchase_room', 10, 3 );
 /**
  *
  * Create purchase for room order
