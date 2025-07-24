@@ -18,6 +18,11 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 		$options['chip'] = array(
 			'title'   => esc_html__( 'CHIP (All Methods)', 'chip-for-tour-master' ),
 			'options' => array(
+				'chip-title'          => array(
+					'title'   => __( 'Payment Method Title', 'chip-for-tour-master' ),
+					'type'    => 'text',
+					'default' => esc_html__( 'CHIP', 'chip-for-tour-master' ),
+				),
 				'chip-secret-key'     => array(
 					'title' => __( 'CHIP Secret Key', 'chip-for-tour-master' ),
 					'type'  => 'text',
@@ -66,6 +71,11 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 		$options['chip-fpx'] = array(
 			'title'   => esc_html__( 'CHIP FPX', 'chip-for-tour-master' ),
 			'options' => array(
+				'chip-fpx-title'          => array(
+					'title'   => __( 'Payment Method Title', 'chip-for-tour-master' ),
+					'type'    => 'text',
+					'default' => esc_html__( 'FPX', 'chip-for-tour-master' ),
+				),
 				'chip-fpx-secret-key'     => array(
 					'title' => __( 'CHIP Secret Key', 'chip-for-tour-master' ),
 					'type'  => 'text',
@@ -106,6 +116,11 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 		$options['chip-fpx-corporate'] = array(
 			'title'   => esc_html__( 'CHIP FPX Corporate', 'chip-for-tour-master' ),
 			'options' => array(
+				'chip-fpx-corporate-title'          => array(
+					'title'   => __( 'Payment Method Title', 'chip-for-tour-master' ),
+					'type'    => 'text',
+					'default' => esc_html__( 'FPX Corporate', 'chip-for-tour-master' ),
+				),
 				'chip-fpx-corporate-secret-key'     => array(
 					'title' => __( 'CHIP Secret Key', 'chip-for-tour-master' ),
 					'type'  => 'text',
@@ -146,6 +161,11 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 		$options['chip-card'] = array(
 			'title'   => esc_html__( 'CHIP Card', 'chip-for-tour-master' ),
 			'options' => array(
+				'chip-card-title'          => array(
+					'title'   => __( 'Payment Method Title', 'chip-for-tour-master' ),
+					'type'    => 'text',
+					'default' => esc_html__( 'Card (Visa / Mastercard)', 'chip-for-tour-master' ),
+				),
 				'chip-card-secret-key'     => array(
 					'title' => __( 'CHIP Secret Key', 'chip-for-tour-master' ),
 					'type'  => 'text',
@@ -187,6 +207,11 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 		$options['chip-ewallet'] = array(
 			'title'   => esc_html__( 'CHIP E-Wallet', 'chip-for-tour-master' ),
 			'options' => array(
+				'chip-ewallet-title'          => array(
+					'title'   => __( 'Payment Method Title', 'chip-for-tour-master' ),
+					'type'    => 'text',
+					'default' => esc_html__( 'E-Wallet', 'chip-for-tour-master' ),
+				),
 				'chip-ewallet-secret-key'     => array(
 					'title' => __( 'CHIP Secret Key', 'chip-for-tour-master' ),
 					'type'  => 'text',
@@ -230,6 +255,11 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 		$options['chip-atome'] = array(
 			'title'   => esc_html__( 'CHIP Atome', 'chip-for-tour-master' ),
 			'options' => array(
+				'chip-atome-title'          => array(
+					'title'   => __( 'Payment Method Title', 'chip-for-tour-master' ),
+					'type'    => 'text',
+					'default' => esc_html__( 'Atome', 'chip-for-tour-master' ),
+				),
 				'chip-atome-secret-key'     => array(
 					'title' => __( 'CHIP Secret Key', 'chip-for-tour-master' ),
 					'type'  => 'text',
@@ -270,6 +300,11 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 		$options['chip-duitnow-qr'] = array(
 			'title'   => esc_html__( 'CHIP DuitNow QR', 'chip-for-tour-master' ),
 			'options' => array(
+				'chip-duitnow-qr-title'          => array(
+					'title'   => __( 'Payment Method Title', 'chip-for-tour-master' ),
+					'type'    => 'text',
+					'default' => esc_html__( 'DuitNow QR (TnG, ShopeePay, GrabPay, Maybank QR, MAE, etc)', 'chip-for-tour-master' ),
+				),
 				'chip-duitnow-qr-secret-key'     => array(
 					'title' => __( 'CHIP Secret Key', 'chip-for-tour-master' ),
 					'type'  => 'text',
@@ -307,13 +342,13 @@ if ( ! function_exists( 'chip_payment_option' ) ) {
 		);
 
 		// Add all payment methods to the payment-settings
-		$options['payment-settings']['options']['payment-method']['options']['chip'] = esc_html__( 'CHIP (All Methods)', 'chip-for-tour-master' );
-		$options['payment-settings']['options']['payment-method']['options']['chip-fpx'] = esc_html__( 'CHIP FPX', 'chip-for-tour-master' );
-		$options['payment-settings']['options']['payment-method']['options']['chip-fpx-corporate'] = esc_html__( 'CHIP FPX Corporate', 'chip-for-tour-master' );
-		$options['payment-settings']['options']['payment-method']['options']['chip-card'] = esc_html__( 'CHIP Card', 'chip-for-tour-master' );
-		$options['payment-settings']['options']['payment-method']['options']['chip-ewallet'] = esc_html__( 'CHIP E-Wallet', 'chip-for-tour-master' );
-		$options['payment-settings']['options']['payment-method']['options']['chip-atome'] = esc_html__( 'CHIP Atome', 'chip-for-tour-master' );
-		$options['payment-settings']['options']['payment-method']['options']['chip-duitnow-qr'] = esc_html__( 'CHIP DuitNow QR', 'chip-for-tour-master' );
+		$options['payment-settings']['options']['payment-method']['options']['chip'] = chip_get_payment_title( 'chip' );
+		$options['payment-settings']['options']['payment-method']['options']['chip-fpx'] = chip_get_payment_title( 'chip-fpx' );
+		$options['payment-settings']['options']['payment-method']['options']['chip-fpx-corporate'] = chip_get_payment_title( 'chip-fpx-corporate' );
+		$options['payment-settings']['options']['payment-method']['options']['chip-card'] = chip_get_payment_title( 'chip-card' );
+		$options['payment-settings']['options']['payment-method']['options']['chip-ewallet'] = chip_get_payment_title( 'chip-ewallet' );
+		$options['payment-settings']['options']['payment-method']['options']['chip-atome'] = chip_get_payment_title( 'chip-atome' );
+		$options['payment-settings']['options']['payment-method']['options']['chip-duitnow-qr'] = chip_get_payment_title( 'chip-duitnow-qr' );
 
 		return $options;
 	}
@@ -361,37 +396,37 @@ if ( ! function_exists( 'chip_additional_payment_method' ) ) {
 
 		// Original CHIP (All Methods)
 		if ( in_array( 'chip', $payment_methods, true ) ) {
-			$ret .= chip_get_payment_method_html( 'chip', 'CHIP (All Methods)', 'chip_payment_charge' );
+			$ret .= chip_get_payment_method_html( 'chip', chip_get_payment_title( 'chip' ), 'chip_payment_charge' );
 		}
 
 		// FPX
 		if ( in_array( 'chip-fpx', $payment_methods, true ) ) {
-			$ret .= chip_get_payment_method_html( 'chip-fpx', 'CHIP FPX', 'chip_fpx_payment_charge' );
+			$ret .= chip_get_payment_method_html( 'chip-fpx', chip_get_payment_title( 'chip-fpx' ), 'chip_fpx_payment_charge' );
 		}
 
 		// FPX Corporate
 		if ( in_array( 'chip-fpx-corporate', $payment_methods, true ) ) {
-			$ret .= chip_get_payment_method_html( 'chip-fpx-corporate', 'CHIP FPX Corporate', 'chip_fpx_corporate_payment_charge' );
+			$ret .= chip_get_payment_method_html( 'chip-fpx-corporate', chip_get_payment_title( 'chip-fpx-corporate' ), 'chip_fpx_corporate_payment_charge' );
 		}
 
 		// Card
 		if ( in_array( 'chip-card', $payment_methods, true ) ) {
-			$ret .= chip_get_payment_method_html( 'chip-card', 'CHIP Card', 'chip_card_payment_charge' );
+			$ret .= chip_get_payment_method_html( 'chip-card', chip_get_payment_title( 'chip-card' ), 'chip_card_payment_charge' );
 		}
 
 		// E-Wallet
 		if ( in_array( 'chip-ewallet', $payment_methods, true ) ) {
-			$ret .= chip_get_payment_method_html( 'chip-ewallet', 'CHIP E-Wallet', 'chip_ewallet_payment_charge' );
+			$ret .= chip_get_payment_method_html( 'chip-ewallet', chip_get_payment_title( 'chip-ewallet' ), 'chip_ewallet_payment_charge' );
 		}
 
 		// Atome
 		if ( in_array( 'chip-atome', $payment_methods, true ) ) {
-			$ret .= chip_get_payment_method_html( 'chip-atome', 'CHIP Atome', 'chip_atome_payment_charge' );
+			$ret .= chip_get_payment_method_html( 'chip-atome', chip_get_payment_title( 'chip-atome' ), 'chip_atome_payment_charge' );
 		}
 
 		// DuitNow QR
 		if ( in_array( 'chip-duitnow-qr', $payment_methods, true ) ) {
-			$ret .= chip_get_payment_method_html( 'chip-duitnow-qr', 'CHIP DuitNow QR', 'chip_duitnow_qr_payment_charge' );
+			$ret .= chip_get_payment_method_html( 'chip-duitnow-qr', chip_get_payment_title( 'chip-duitnow-qr' ), 'chip_duitnow_qr_payment_charge' );
 		}
 
 		return $ret;
@@ -449,6 +484,29 @@ if ( ! function_exists( 'chip_get_payment_logos' ) ) {
 				return tourmaster_get_option( 'payment', 'chip-duitnow-qr-logo', array( 'duitnow_qr' ) );
 			default:
 				return array();
+		}
+	}
+}
+
+if ( ! function_exists( 'chip_get_payment_title' ) ) {
+	function chip_get_payment_title( $method_key ) {
+		switch ( $method_key ) {
+			case 'chip':
+				return tourmaster_get_option( 'payment', 'chip-title', esc_html__( 'CHIP', 'chip-for-tour-master' ) );
+			case 'chip-fpx':
+				return tourmaster_get_option( 'payment', 'chip-fpx-title', esc_html__( 'FPX', 'chip-for-tour-master' ) );
+			case 'chip-fpx-corporate':
+				return tourmaster_get_option( 'payment', 'chip-fpx-corporate-title', esc_html__( 'FPX Corporate', 'chip-for-tour-master' ) );
+			case 'chip-card':
+				return tourmaster_get_option( 'payment', 'chip-card-title', esc_html__( 'Card (Visa / Mastercard)', 'chip-for-tour-master' ) );
+			case 'chip-ewallet':
+				return tourmaster_get_option( 'payment', 'chip-ewallet-title', esc_html__( 'E-Wallet  (TnG, ShopeePay, GrabPay, Maybank QR)', 'chip-for-tour-master' ) );
+			case 'chip-atome':
+				return tourmaster_get_option( 'payment', 'chip-atome-title', esc_html__( 'Atome', 'chip-for-tour-master' ) );
+			case 'chip-duitnow-qr':
+				return tourmaster_get_option( 'payment', 'chip-duitnow-qr-title', esc_html__( 'DuitNow QR  (TnG, ShopeePay, GrabPay, Maybank QR, MAE, etc)', 'chip-for-tour-master' ) );
+			default:
+				return esc_html__( 'CHIP', 'chip-for-tour-master' );
 		}
 	}
 }
@@ -1282,13 +1340,13 @@ add_filter( 'tourmaster_custom_payment_selection', 'chip_tm_custom_payment_selec
  */
 function chip_tm_custom_payment_selection( $ret, $payment_method ) {
 	$payment_methods = array(
-		'chip' => esc_html__( 'CHIP (All Methods)', 'chip-for-tour-master' ),
-		'chip-fpx' => esc_html__( 'CHIP FPX', 'chip-for-tour-master' ),
-		'chip-fpx-corporate' => esc_html__( 'CHIP FPX Corporate', 'chip-for-tour-master' ),
-		'chip-card' => esc_html__( 'CHIP Card', 'chip-for-tour-master' ),
-		'chip-ewallet' => esc_html__( 'CHIP E-Wallet', 'chip-for-tour-master' ),
-		'chip-atome' => esc_html__( 'CHIP Atome', 'chip-for-tour-master' ),
-		'chip-duitnow-qr' => esc_html__( 'CHIP DuitNow QR', 'chip-for-tour-master' ),
+		'chip' => chip_get_payment_title( 'chip' ),
+		'chip-fpx' => chip_get_payment_title( 'chip-fpx' ),
+		'chip-fpx-corporate' => chip_get_payment_title( 'chip-fpx-corporate' ),
+		'chip-card' => chip_get_payment_title( 'chip-card' ),
+		'chip-ewallet' => chip_get_payment_title( 'chip-ewallet' ),
+		'chip-atome' => chip_get_payment_title( 'chip-atome' ),
+		'chip-duitnow-qr' => chip_get_payment_title( 'chip-duitnow-qr' ),
 	);
 	
 	foreach ( $payment_methods as $method_key => $method_name ) {

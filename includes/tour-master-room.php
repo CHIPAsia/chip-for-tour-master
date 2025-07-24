@@ -504,15 +504,15 @@ function add_chip_to_room_payment_methods( $payments_title ) {
 
 	$payment_method = tourmaster_get_option( 'payment', 'payment-method', array() );
 	
-	// Add all CHIP payment methods
+	// Add all CHIP payment methods with configurable titles
 	$chip_methods = array(
-		'chip' => esc_html__( 'CHIP (All Methods)', 'chip-for-tour-master' ),
-		'chip-fpx' => esc_html__( 'CHIP FPX', 'chip-for-tour-master' ),
-		'chip-fpx-corporate' => esc_html__( 'CHIP FPX Corporate', 'chip-for-tour-master' ),
-		'chip-card' => esc_html__( 'CHIP Card', 'chip-for-tour-master' ),
-		'chip-ewallet' => esc_html__( 'CHIP E-Wallet', 'chip-for-tour-master' ),
-		'chip-atome' => esc_html__( 'CHIP Atome', 'chip-for-tour-master' ),
-		'chip-duitnow-qr' => esc_html__( 'CHIP DuitNow QR', 'chip-for-tour-master' ),
+		'chip' => chip_get_payment_title( 'chip' ),
+		'chip-fpx' => chip_get_payment_title( 'chip-fpx' ),
+		'chip-fpx-corporate' => chip_get_payment_title( 'chip-fpx-corporate' ),
+		'chip-card' => chip_get_payment_title( 'chip-card' ),
+		'chip-ewallet' => chip_get_payment_title( 'chip-ewallet' ),
+		'chip-atome' => chip_get_payment_title( 'chip-atome' ),
+		'chip-duitnow-qr' => chip_get_payment_title( 'chip-duitnow-qr' ),
 	);
 	
 	foreach ( $chip_methods as $method_key => $method_name ) {
