@@ -2,6 +2,25 @@
 
 add_filter( 'goodlayers_room_chip_payment_form', 'chip_create_purchase_room', 10, 3 );
 
+// Add AJAX handlers for new room payment methods
+add_action( 'wp_ajax_chip_fpx_room_payment_charge', 'chip_fpx_create_purchase_room' );
+add_action( 'wp_ajax_nopriv_chip_fpx_room_payment_charge', 'chip_fpx_create_purchase_room' );
+
+add_action( 'wp_ajax_chip_fpx_corporate_room_payment_charge', 'chip_fpx_corporate_create_purchase_room' );
+add_action( 'wp_ajax_nopriv_chip_fpx_corporate_room_payment_charge', 'chip_fpx_corporate_create_purchase_room' );
+
+add_action( 'wp_ajax_chip_card_room_payment_charge', 'chip_card_create_purchase_room' );
+add_action( 'wp_ajax_nopriv_chip_card_room_payment_charge', 'chip_card_create_purchase_room' );
+
+add_action( 'wp_ajax_chip_ewallet_room_payment_charge', 'chip_ewallet_create_purchase_room' );
+add_action( 'wp_ajax_nopriv_chip_ewallet_room_payment_charge', 'chip_ewallet_create_purchase_room' );
+
+add_action( 'wp_ajax_chip_atome_room_payment_charge', 'chip_atome_create_purchase_room' );
+add_action( 'wp_ajax_nopriv_chip_atome_room_payment_charge', 'chip_atome_create_purchase_room' );
+
+add_action( 'wp_ajax_chip_duitnow_qr_room_payment_charge', 'chip_duitnow_qr_create_purchase_room' );
+add_action( 'wp_ajax_nopriv_chip_duitnow_qr_room_payment_charge', 'chip_duitnow_qr_create_purchase_room' );
+
 /**
  *
  * Create purchase for room order
@@ -11,155 +30,209 @@ add_filter( 'goodlayers_room_chip_payment_form', 'chip_create_purchase_room', 10
  * @phpcs:disable WordPress.Security.NonceVerification
  */
 function chip_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = true ) {
-	$timestamp = time();
+	return chip_create_purchase_room_with_method( $ret, $tid, $pay_full_amount, 'chip', array() );
+}
 
-	if ( ! empty( $tid ) ) {
-		// prepare data.
+// FPX Room Payment Creation Function
+if ( ! function_exists( 'chip_fpx_create_purchase_room' ) ) {
+	function chip_fpx_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = true ) {
+		return chip_create_purchase_room_with_method( $ret, $tid, $pay_full_amount, 'chip-fpx', array( 'fpx' ) );
+	}
+}
 
-		$form            = stripslashes_deep( $_POST['form'] );
-		$pay_full_amount = empty( $form['pay_full_amount'] ) ? false : true;
+// FPX Corporate Room Payment Creation Function
+if ( ! function_exists( 'chip_fpx_corporate_create_purchase_room' ) ) {
+	function chip_fpx_corporate_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = true ) {
+		return chip_create_purchase_room_with_method( $ret, $tid, $pay_full_amount, 'chip-fpx-corporate', array( 'fpx_b2b1' ) );
+	}
+}
 
-		$secret_key = trim( tourmaster_get_option( 'room_payment', 'chip-secret-key', '' ) );
-		$brand_id   = trim( tourmaster_get_option( 'room_payment', 'chip-brand-id', '' ) );
+// Card Room Payment Creation Function
+if ( ! function_exists( 'chip_card_create_purchase_room' ) ) {
+	function chip_card_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = true ) {
+		return chip_create_purchase_room_with_method( $ret, $tid, $pay_full_amount, 'chip-card', array( 'visa', 'mastercard', 'maestro' ) );
+	}
+}
 
-		global $wpdb;
-		$sql           = "SELECT id, contact_info, total_price, payment_info, currency FROM {$wpdb->prefix}tourmaster_room_order ";
-		$sql          .= $wpdb->prepare( 'WHERE id = %d', $tid );
-		$order         = $wpdb->get_row( $sql );
-		$contact_info  = json_decode( $order->contact_info, true );
-		$payment_infos = empty( $order->payment_info ) ? array() : json_decode( $order->payment_info, true );
+// E-Wallet Room Payment Creation Function
+if ( ! function_exists( 'chip_ewallet_create_purchase_room' ) ) {
+	function chip_ewallet_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = true ) {
+		return chip_create_purchase_room_with_method( $ret, $tid, $pay_full_amount, 'chip-ewallet', array( 'razer_grabpay', 'razer_shopeepay', 'razer_tng', 'razer_maybankqr' ) );
+	}
+}
 
-		$price = $order->total_price;
-		if ( empty( $pay_full_amount ) ) {
-			$deposit_info = tourmaster_room_get_deposit_info( $price, $payment_infos );
-			if ( ! empty( $deposit_info['deposit_amount'] ) ) {
-				$price = $deposit_info['deposit_amount'];
+// Atome Room Payment Creation Function
+if ( ! function_exists( 'chip_atome_create_purchase_room' ) ) {
+	function chip_atome_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = true ) {
+		return chip_create_purchase_room_with_method( $ret, $tid, $pay_full_amount, 'chip-atome', array( 'razer_atome' ) );
+	}
+}
+
+// DuitNow QR Room Payment Creation Function
+if ( ! function_exists( 'chip_duitnow_qr_create_purchase_room' ) ) {
+	function chip_duitnow_qr_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = true ) {
+		return chip_create_purchase_room_with_method( $ret, $tid, $pay_full_amount, 'chip-duitnow-qr', array( 'duitnow_qr' ) );
+	}
+}
+
+// Generic function to create room purchase with specific payment method
+if ( ! function_exists( 'chip_create_purchase_room_with_method' ) ) {
+	function chip_create_purchase_room_with_method( $ret = '', $tid = '', $pay_full_amount = true, $method_key = 'chip', $payment_method_whitelist = array() ) {
+		$timestamp = time();
+
+		if ( ! empty( $tid ) ) {
+			// prepare data.
+
+			$form            = stripslashes_deep( $_POST['form'] );
+			$pay_full_amount = empty( $form['pay_full_amount'] ) ? false : true;
+
+			$secret_key = trim( tourmaster_get_option( 'room_payment', $method_key . '-secret-key', '' ) );
+			$brand_id   = trim( tourmaster_get_option( 'room_payment', $method_key . '-brand-id', '' ) );
+
+			global $wpdb;
+			$sql           = "SELECT id, contact_info, total_price, payment_info, currency FROM {$wpdb->prefix}tourmaster_room_order ";
+			$sql          .= $wpdb->prepare( 'WHERE id = %d', $tid );
+			$order         = $wpdb->get_row( $sql );
+			$contact_info  = json_decode( $order->contact_info, true );
+			$payment_infos = empty( $order->payment_info ) ? array() : json_decode( $order->payment_info, true );
+
+			$price = $order->total_price;
+			if ( empty( $pay_full_amount ) ) {
+				$deposit_info = tourmaster_room_get_deposit_info( $price, $payment_infos );
+				if ( ! empty( $deposit_info['deposit_amount'] ) ) {
+					$price = $deposit_info['deposit_amount'];
+				}
+			} else {
+				$paid_amount = 0;
+				foreach ( $payment_infos as $payment_info ) {
+					$paid_amount += empty( $payment_info['amount'] ) ? 0 : floatval( $payment_info['amount'] );
+				}
+				$price = $price - $paid_amount;
 			}
-		} else {
-			$paid_amount = 0;
-			foreach ( $payment_infos as $payment_info ) {
-				$paid_amount += empty( $payment_info['amount'] ) ? 0 : floatval( $payment_info['amount'] );
+
+			$currency_code = strtoupper( tourmaster_get_option( 'general', 'currency-code', 'USD' ) );
+
+			// apply currency
+			if ( ! empty( $order->currency ) ) {
+				$currency = json_decode( $order->currency, true );
+				if ( ! empty( $currency ) ) {
+					$currency_code = strtoupper( $currency['currency-code'] );
+					$price         = $price * floatval( $currency['exchange-rate'] );
+				}
 			}
-			$price = $price - $paid_amount;
-		}
 
-		$currency_code = strtoupper( tourmaster_get_option( 'general', 'currency-code', 'USD' ) );
+			if ( empty( $price ) ) {
+				return esc_html__( 'Cannot retrieve pricing data, please try again.', 'chip-for-tour-master' );
 
-		// apply currency
-		if ( ! empty( $order->currency ) ) {
-			$currency = json_decode( $order->currency, true );
-			if ( ! empty( $currency ) ) {
-				$currency_code = strtoupper( $currency['currency-code'] );
-				$price         = $price * floatval( $currency['exchange-rate'] );
-			}
-		}
+				// Start the payment process
+			} else {
 
-		if ( empty( $price ) ) {
-			return esc_html__( 'Cannot retrieve pricing data, please try again.', 'chip-for-tour-master' );
+				$price = round( floatval( $price ) * 100 );
 
-			// Start the payment process
-		} else {
-
-			$price = round( floatval( $price ) * 100 );
-
-			$send_params = array(
-				'success_callback' => add_query_arg(
-					array(
-						'chip_tour_master' => 'callback_room_flow',
-						'tid'              => $tid,
-						'timestamp'        => $timestamp,
-					),
-					site_url( '/' )
-				),
-				'success_redirect' => add_query_arg(
-					array(
-						'chip_tour_master' => 'redirect_room_flow',
-						'tid'              => $tid,
-						'timestamp'        => $timestamp,
-					),
-					site_url( '/' )
-				),
-				'failure_redirect' => tourmaster_get_template_url( 'room-payment' ),
-				'cancel_redirect'  => tourmaster_get_template_url( 'room-payment' ),
-				'creator_agent'    => 'TourMaster: ' . CTM_MODULE_VERSION,
-				'reference'        => $tid,
-				'platform'         => 'api', // traveltour.
-				'brand_id'         => $brand_id,
-				'client'           => array(
-					'email'     => $contact_info['email'],
-					'full_name' => substr( $contact_info['first_name'] . ' ' . $contact_info['last_name'], 0, 30 ),
-				),
-				'purchase'         => array(
-					'currency' => $currency_code,
-					'products' => array(
+				$send_params = array(
+					'success_callback' => add_query_arg(
 						array(
-							'name'  => substr( 'Room booking: #' . $order->id, 0, 256 ),
-							'price' => $price,
+							'chip_tour_master' => 'callback_room_flow',
+							'tid'              => $tid,
+							'timestamp'        => $timestamp,
+						),
+						site_url( '/' )
+					),
+					'success_redirect' => add_query_arg(
+						array(
+							'chip_tour_master' => 'redirect_room_flow',
+							'tid'              => $tid,
+							'timestamp'        => $timestamp,
+						),
+						site_url( '/' )
+					),
+					'failure_redirect' => tourmaster_get_template_url( 'room-payment' ),
+					'cancel_redirect'  => tourmaster_get_template_url( 'room-payment' ),
+					'creator_agent'    => 'TourMaster: ' . CTM_MODULE_VERSION,
+					'reference'        => $tid,
+					'platform'         => 'api', // traveltour.
+					'brand_id'         => $brand_id,
+					'client'           => array(
+						'email'     => $contact_info['email'],
+						'full_name' => substr( $contact_info['first_name'] . ' ' . $contact_info['last_name'], 0, 30 ),
+					),
+					'purchase'         => array(
+						'currency' => $currency_code,
+						'products' => array(
+							array(
+								'name'  => substr( 'Room booking: #' . $order->id, 0, 256 ),
+								'price' => $price,
+							),
 						),
 					),
-				),
-			);
-
-			$process_fee = trim( tourmaster_get_option( 'room_payment', 'chip-processing-fee', 0 ) );
-			$process_fee = absint( wp_unslash( $process_fee ) );
-
-			if ( $process_fee > 0 ) {
-				$send_params['purchase']['products'][] = array(
-					'name'  => esc_html__( 'Processing Fee', 'chip-for-tour-master' ),
-					'price' => round( $process_fee ),
 				);
+
+				// Add payment method whitelist if specified
+				if ( ! empty( $payment_method_whitelist ) ) {
+					$send_params['payment_method_whitelist'] = $payment_method_whitelist;
+				}
+
+				$process_fee = trim( tourmaster_get_option( 'room_payment', $method_key . '-processing-fee', 0 ) );
+				$process_fee = absint( wp_unslash( $process_fee ) );
+
+				if ( $process_fee > 0 ) {
+					$send_params['purchase']['products'][] = array(
+						'name'  => esc_html__( 'Processing Fee', 'chip-for-tour-master' ),
+						'price' => round( $process_fee ),
+					);
+				}
+
+				$send_params = apply_filters( 'tourmaster_chip_payment_send_params_room', $send_params, $tid );
+
+				$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
+				$purchase = $chip->create_payment( $send_params );
+
+				if ( ! array_key_exists( 'id', $purchase ) ) {
+					return sprintf( esc_html__( 'Failed to create purchase. %s', 'chip-for-tour-master' ), wp_json_encode( $purchase, JSON_PRETTY_PRINT ) );
+				}
+
+				$payment_info = array(
+					'id'             => $purchase['id'],
+					'amount'         => $price,
+					'transaction_id' => $purchase['id'] . '-pending',
+					'payment_method' => 'CHIP',
+					'payment_status' => $purchase['status'],
+					'timestamp'      => $timestamp,
+				);
+
+				// get old payment info
+				$payment_infos   = json_decode( $order->payment_info, true );
+				$payment_infos   = tourmaster_payment_info_format( $payment_infos, $order->order_status );
+				$payment_infos[] = $payment_info;
+
+				$wpdb->update(
+					"{$wpdb->prefix}tourmaster_room_order",
+					array(
+						'payment_info' => wp_json_encode( $payment_infos ),
+					),
+					array( 'id' => $tid ),
+					array( '%s' ),
+					array( '%d' )
+				);
+
+				ob_start();
+				?>
+				<div class="gdlr-core-purchase-form">
+					<div class="gdlr-core-purchase-form-title">
+						<?php esc_html_e( 'Redirecting to payment page...', 'chip-for-tour-master' ); ?>
+					</div>
+					<div class="gdlr-core-purchase-form-content">
+						<?php esc_html_e( 'Please wait while we redirect you to the payment page.', 'chip-for-tour-master' ); ?>
+					</div>
+					<script type="text/javascript">
+						window.location.href = '<?php echo $purchase['checkout_url']; ?>';
+					</script>
+				<?php
+				$ret = ob_get_contents();
+				ob_end_clean();
+
+				return $ret;
 			}
-
-			$send_params = apply_filters( 'tourmaster_chip_payment_send_params_room', $send_params, $tid );
-
-			$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
-			$purchase = $chip->create_payment( $send_params );
-
-			if ( ! array_key_exists( 'id', $purchase ) ) {
-				return sprintf( esc_html__( 'Failed to create purchase. %s', 'chip-for-tour-master' ), wp_json_encode( $purchase, JSON_PRETTY_PRINT ) );
-			}
-
-			$payment_info = array(
-				'id'             => $purchase['id'],
-				'amount'         => $price,
-				'transaction_id' => $purchase['id'] . '-pending',
-				'payment_method' => 'CHIP',
-				'payment_status' => $purchase['status'],
-				'timestamp'      => $timestamp,
-			);
-
-			// get old payment info
-			$payment_infos   = json_decode( $order->payment_info, true );
-			$payment_infos   = tourmaster_payment_info_format( $payment_infos, $order->order_status );
-			$payment_infos[] = $payment_info;
-
-			$wpdb->update(
-				"{$wpdb->prefix}tourmaster_room_order",
-				array(
-					'payment_info' => wp_json_encode( $payment_infos ),
-				),
-				array( 'id' => $tid ),
-				array( '%s' ),
-				array( '%d' )
-			);
-
-			ob_start();
-			?>
-			<div class="gdlr-core-purchase-form">
-				<div class="gdlr-core-purchase-form-title">
-					<?php esc_html_e( 'Redirecting to payment page...', 'chip-for-tour-master' ); ?>
-				</div>
-				<div class="gdlr-core-purchase-form-content">
-					<?php esc_html_e( 'Please wait while we redirect you to the payment page.', 'chip-for-tour-master' ); ?>
-				</div>
-				<script type="text/javascript">
-					window.location.href = '<?php echo $purchase['checkout_url']; ?>';
-				</script>
-			<?php
-			$ret = ob_get_contents();
-			ob_end_clean();
-
-			return $ret;
 		}
 	}
 }
@@ -436,8 +509,24 @@ add_filter( 'tourmaster_room_payment_methods', 'add_chip_to_room_payment_methods
  */
 function add_chip_to_room_payment_methods( $payments_title ) {
 
-	$payment_method         = tourmaster_get_option( 'payment', 'payment-method', array() );
-	$payments_title['chip'] = esc_html__( 'CHIP', 'chip-for-tour-master' );
+	$payment_method = tourmaster_get_option( 'payment', 'payment-method', array() );
+	
+	// Add all CHIP payment methods
+	$chip_methods = array(
+		'chip' => esc_html__( 'CHIP (All Methods)', 'chip-for-tour-master' ),
+		'chip-fpx' => esc_html__( 'CHIP FPX', 'chip-for-tour-master' ),
+		'chip-fpx-corporate' => esc_html__( 'CHIP FPX Corporate', 'chip-for-tour-master' ),
+		'chip-card' => esc_html__( 'CHIP Card', 'chip-for-tour-master' ),
+		'chip-ewallet' => esc_html__( 'CHIP E-Wallet', 'chip-for-tour-master' ),
+		'chip-atome' => esc_html__( 'CHIP Atome', 'chip-for-tour-master' ),
+		'chip-duitnow-qr' => esc_html__( 'CHIP DuitNow QR', 'chip-for-tour-master' ),
+	);
+	
+	foreach ( $chip_methods as $method_key => $method_name ) {
+		if ( in_array( $method_key, $payment_method, true ) ) {
+			$payments_title[ $method_key ] = $method_name;
+		}
+	}
 
 	return $payments_title;
 }
@@ -456,5 +545,14 @@ function chip_tm_room_custom_payment_enable( $status, $payment_method ) {
 	if ( $status ) {
 		return true;
 	}
-	return in_array( 'chip', $payment_method, true );
+	
+	// Check for all CHIP payment methods
+	$chip_methods = array( 'chip', 'chip-fpx', 'chip-fpx-corporate', 'chip-card', 'chip-ewallet', 'chip-atome', 'chip-duitnow-qr' );
+	foreach ( $chip_methods as $method ) {
+		if ( in_array( $method, $payment_method, true ) ) {
+			return true;
+		}
+	}
+	
+	return false;
 }
