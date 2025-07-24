@@ -3,7 +3,7 @@
  * Plugin Name: CHIP for Tour Master
  * Plugin URI: https://github.com/CHIPAsia/chip-for-tour-master
  * Description: Integrate CHIP with Tour Master
- * Version: 1.0.1
+ * Version: 1.1.0
  * Author: Chip In Sdn Bhd
  * Author URI: https://chip-in.asia
  * Requires at least: 6.1
@@ -37,7 +37,7 @@ function ctm_load() {
  * @since 1.0.0
  */
 function define_ctm_static() {
-	define( 'CTM_MODULE_VERSION', 'v1.0.1' );
+	define( 'CTM_MODULE_VERSION', 'v1.1.0' );
 	define( 'CTM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 	define( 'CTM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 }
