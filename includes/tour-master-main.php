@@ -757,7 +757,7 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 				$price = $t_data['price']['pay-amount'];
 			}
 
-				// apply currency
+			// apply currency
 			if ( ! empty( $t_data['currency'] ) ) {
 				$currency_code = strtoupper( $t_data['currency']['currency-code'] );
 				$price         = $price * floatval( $t_data['currency']['exchange-rate'] );
@@ -840,6 +840,7 @@ if ( ! function_exists( 'chip_create_purchase' ) ) {
 					'payment_method' => 'CHIP',
 					'payment_status' => $purchase['status'],
 					'timestamp'      => $timestamp,
+					'method_key'     => 'chip', // Store the method key for status updates
 				);
 
 				// get old payment info
@@ -1024,6 +1025,7 @@ if ( ! function_exists( 'chip_create_purchase_with_method' ) ) {
 					'payment_method' => 'CHIP',
 					'payment_status' => $purchase['status'],
 					'timestamp'      => $timestamp,
+					'method_key'     => $method_key, // Store the method key for status updates
 				);
 
 				// get old payment info
@@ -1119,58 +1121,9 @@ function chip_redirect_status_update() {
 		exit;
 	}
 
-	$secret_key = trim( tourmaster_get_option( 'payment', 'chip-secret-key', '' ) );
-
-	$chip     = new Chip_Travel_Tour_API( $secret_key, '' );
-	$purchase = $chip->get_payment( $payment_info['id'] );
-
-	if ( $purchase['status'] !== 'paid' ) {
-		wp_safe_redirect( tourmaster_get_template_url( 'payment' ) );
-		exit;
-	}
-
-	$price = $purchase['payment']['amount'] / 100;
-
-	$process_fee = trim( tourmaster_get_option( 'payment', 'chip-processing-fee', 0 ) );
-	$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
-	$price       = $price - $process_fee;
-
-	if ( ! empty( $booking_data->currency ) ) {
-		$currency = json_decode( $booking_data->currency, true );
-		$price    = $price / floatval( $currency['exchange-rate'] );
-	}
-
-	$new_payment_info = array(
-		'transaction_id'  => $purchase['id'],
-		'amount'          => $price,
-		'payment_method'  => 'CHIP',
-		'payment_status'  => $purchase['status'],
-		'submission_date' => current_time( 'mysql' ),
-		'timestamp'       => time(),
-	);
-
-	foreach ( $payment_infos as $key => $value ) {
-		if ( $value['timestamp'] == $_GET['timestamp'] ) {
-			unset( $payment_infos[ $key ] );
-			break;
-		}
-	}
-
-	$payment_infos = array_values( $payment_infos );
-
-	tourmaster_update_booking_data(
-		array(
-			'payment_info' => wp_json_encode( $payment_infos ),
-		),
-		array( 'id' => $tid ),
-		array( '%s' ),
-		array( '%d' )
-	);
-
-	do_action( 'goodlayers_set_payment_complete', $tid, $new_payment_info );
-
-	wp_safe_redirect( $success_redirect );
-	exit;
+	// Use the generic handler for all CHIP payment methods
+	// The method_key is already stored in payment_info from when the purchase was created
+	chip_handle_status_update( $payment_info, $tid, true );
 }
 
 add_action( 'init', 'chip_callback_status_update', 10, 0 );
@@ -1240,7 +1193,9 @@ function chip_callback_status_update() {
 		exit;
 	}
 
-	$secret_key     = trim( tourmaster_get_option( 'payment', 'chip-secret-key', '' ) );
+	// The method_key is already stored in payment_info from when the purchase was created
+	$method_key = isset( $payment_info['method_key'] ) ? $payment_info['method_key'] : 'chip';
+	$secret_key = trim( tourmaster_get_option( 'payment', $method_key . '-secret-key', '' ) );
 	$ten_secret_key = substr( $secret_key, 0, 10 );
 
 	if ( empty( $public_key = get_option( 'chip_tm_' . $ten_secret_key ) ) ) {
@@ -1261,11 +1216,15 @@ function chip_callback_status_update() {
 		exit;
 	}
 
-	$price = $purchase['payment']['amount'] / 100;
-
-	$process_fee = trim( tourmaster_get_option( 'payment', 'chip-processing-fee', 0 ) );
+	// Handle callback specifically for webhook data
+	$method_key = isset( $payment_info['method_key'] ) ? $payment_info['method_key'] : 'chip';
+	
+	// Get processing fee for the specific method
+	$process_fee = trim( tourmaster_get_option( 'payment', $method_key . '-processing-fee', 0 ) );
 	$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
-	$price       = $price - $process_fee;
+	
+	$price = $purchase['payment']['amount'] / 100;
+	$price = $price - $process_fee;
 
 	if ( ! empty( $booking_data->currency ) ) {
 		$currency = json_decode( $booking_data->currency, true );
@@ -1275,7 +1234,7 @@ function chip_callback_status_update() {
 	$new_payment_info = array(
 		'transaction_id'  => $purchase['id'],
 		'amount'          => $price,
-		'payment_method'  => 'CHIP',
+		'payment_method'  => $method_key,
 		'payment_status'  => $purchase['status'],
 		'submission_date' => current_time( 'mysql' ),
 		'timestamp'       => time(),
@@ -1302,6 +1261,87 @@ function chip_callback_status_update() {
 	do_action( 'goodlayers_set_payment_complete', $tid, $new_payment_info );
 
 	exit( 'Callback success' );
+}
+
+// Generic status update function that determines which payment method was used
+if ( ! function_exists( 'chip_handle_status_update' ) ) {
+	function chip_handle_status_update( $payment_info, $tid, $is_redirect = false ) {
+		$method_key = isset( $payment_info['method_key'] ) ? $payment_info['method_key'] : 'chip';
+		
+		// Get the appropriate secret key and brand ID for the method
+		$secret_key = trim( tourmaster_get_option( 'payment', $method_key . '-secret-key', '' ) );
+		$brand_id   = trim( tourmaster_get_option( 'payment', $method_key . '-brand-id', '' ) );
+		
+		// Get processing fee for the specific method
+		$process_fee = trim( tourmaster_get_option( 'payment', $method_key . '-processing-fee', 0 ) );
+		$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
+		
+		$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
+		$purchase = $chip->get_payment( $payment_info['id'] );
+
+		if ( $purchase['status'] !== 'paid' ) {
+			if ( $is_redirect ) {
+				wp_safe_redirect( tourmaster_get_template_url( 'payment' ) );
+				exit;
+			} else {
+				exit;
+			}
+		}
+
+		$price = $purchase['payment']['amount'] / 100;
+		$price = $price - $process_fee;
+
+		$booking_data = tourmaster_get_booking_data( array( 'id' => $tid ), array( 'single' => true ) );
+
+		if ( ! empty( $booking_data->currency ) ) {
+			$currency = json_decode( $booking_data->currency, true );
+			$price    = $price / floatval( $currency['exchange-rate'] );
+		}
+
+		$new_payment_info = array(
+			'transaction_id'  => $purchase['id'],
+			'amount'          => $price,
+			'payment_method'  => $method_key,
+			'payment_status'  => $purchase['status'],
+			'submission_date' => current_time( 'mysql' ),
+			'timestamp'       => time(),
+		);
+
+		$payment_infos = json_decode( $booking_data->payment_info, true );
+		
+		foreach ( $payment_infos as $key => $value ) {
+			if ( $value['timestamp'] == $_GET['timestamp'] ) {
+				unset( $payment_infos[ $key ] );
+				break;
+			}
+		}
+
+		$payment_infos = array_values( $payment_infos );
+
+		tourmaster_update_booking_data(
+			array(
+				'payment_info' => wp_json_encode( $payment_infos ),
+			),
+			array( 'id' => $tid ),
+			array( '%s' ),
+			array( '%d' )
+		);
+
+		do_action( 'goodlayers_set_payment_complete', $tid, $new_payment_info );
+
+		if ( $is_redirect ) {
+			$success_redirect = add_query_arg(
+				array(
+					'tid'            => $tid,
+					'step'           => 4,
+					'payment_method' => 'paypal',
+				),
+				tourmaster_get_template_url( 'payment' )
+			);
+			wp_safe_redirect( $success_redirect );
+			exit;
+		}
+	}
 }
 
 add_filter( 'tourmaster_custom_payment_enable', 'chip_tm_custom_payment_enable', 10, 2 );

@@ -191,6 +191,7 @@ if ( ! function_exists( 'chip_create_purchase_room_with_method' ) ) {
 					'payment_method' => 'CHIP',
 					'payment_status' => $purchase['status'],
 					'timestamp'      => $timestamp,
+					'method_key'     => $method_key, // Store the method key for status updates
 				);
 
 				// get old payment info
@@ -295,71 +296,9 @@ function chip_redirect_room_status_update() {
 		exit;
 	}
 
-	$secret_key = trim( tourmaster_get_option( 'room_payment', 'chip-secret-key', '' ) );
-
-	$chip     = new Chip_Travel_Tour_API( $secret_key, '' );
-	$purchase = $chip->get_payment( $payment_info['id'] );
-
-	if ( $purchase['status'] !== 'paid' ) {
-		wp_safe_redirect( tourmaster_get_template_url( 'room-payment' ) );
-		exit;
-	}
-
-	$price = $purchase['payment']['amount'] / 100;
-
-	$process_fee = trim( tourmaster_get_option( 'room_payment', 'chip-processing-fee', 0 ) );
-	$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
-	$price       = $price - $process_fee;
-
-	if ( ! empty( $order->currency ) ) {
-		$currency = json_decode( $order->currency, true );
-		$price    = $price / floatval( $currency['exchange-rate'] );
-	}
-
-	$new_payment_info = array(
-		'transaction_id'  => $purchase['id'],
-		'amount'          => $price,
-		'payment_method'  => 'CHIP',
-		'payment_status'  => $purchase['status'],
-		'submission_date' => current_time( 'mysql' ),
-		'timestamp'       => time(),
-	);
-
-	foreach ( $payment_infos as $key => $value ) {
-		if ( absint( $_GET['timestamp'] ) === $value['timestamp'] ) {
-			unset( $payment_infos[ $key ] );
-			break;
-		}
-	}
-
-	$payment_infos = array_values( $payment_infos );
-
-	$payment_infos[] = $new_payment_info;
-	$order_status    = tourmaster_room_payment_order_status( $order->total_price, $payment_infos, true );
-
-	$wpdb->update(
-		"{$wpdb->prefix}tourmaster_room_order",
-		array(
-			'payment_info' => wp_json_encode( $payment_infos ),
-			'order_status' => $order_status,
-		),
-		array( 'id' => $tid ),
-		array( '%s', '%s' ),
-		array( '%d' )
-	);
-
-	// send an email.
-	if ( $order_status == 'deposit-paid' ) {
-		tourmaster_room_mail_notification( 'deposit-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
-		tourmaster_room_mail_notification( 'admin-deposit-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
-	} elseif ( $order_status == 'approved' || $order_status == 'online-paid' ) {
-		tourmaster_room_mail_notification( 'payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
-		tourmaster_room_mail_notification( 'admin-online-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
-	}
-	tourmaster_room_send_email_invoice( $tid );
-
-	wp_safe_redirect( $success_redirect );
-	exit;
+	// Use the generic handler for all CHIP payment methods
+	// The method_key is already stored in payment_info from when the purchase was created
+	chip_handle_room_status_update( $payment_info, $tid, $order, true );
 }
 
 add_action( 'init', 'chip_callback_room_status_update', 10, 0 );
@@ -414,7 +353,9 @@ function chip_callback_room_status_update() {
 		exit;
 	}
 
-	$secret_key     = trim( tourmaster_get_option( 'room_payment', 'chip-secret-key', '' ) );
+	// The method_key is already stored in payment_info from when the purchase was created
+	$method_key = isset( $payment_info['method_key'] ) ? $payment_info['method_key'] : 'chip';
+	$secret_key = trim( tourmaster_get_option( 'room_payment', $method_key . '-secret-key', '' ) );
 	$ten_secret_key = substr( $secret_key, 0, 10 );
 
 	if ( empty( $public_key = get_option( 'chip_tm_' . $ten_secret_key ) ) ) {
@@ -435,11 +376,12 @@ function chip_callback_room_status_update() {
 		exit;
 	}
 
-	$price = $purchase['payment']['amount'] / 100;
-
-	$process_fee = trim( tourmaster_get_option( 'room_payment', 'chip-processing-fee', 0 ) );
+	// Handle callback specifically for webhook data
+	$process_fee = trim( tourmaster_get_option( 'room_payment', $method_key . '-processing-fee', 0 ) );
 	$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
-	$price       = $price - $process_fee;
+	
+	$price = $purchase['payment']['amount'] / 100;
+	$price = $price - $process_fee;
 
 	if ( ! empty( $order->currency ) ) {
 		$currency = json_decode( $order->currency, true );
@@ -449,7 +391,7 @@ function chip_callback_room_status_update() {
 	$new_payment_info = array(
 		'transaction_id'  => $purchase['id'],
 		'amount'          => $price,
-		'payment_method'  => 'CHIP',
+		'payment_method'  => $method_key,
 		'payment_status'  => $purchase['status'],
 		'submission_date' => current_time( 'mysql' ),
 		'timestamp'       => time(),
@@ -467,6 +409,7 @@ function chip_callback_room_status_update() {
 	$payment_infos[] = $new_payment_info;
 	$order_status    = tourmaster_room_payment_order_status( $order->total_price, $payment_infos, true );
 
+	global $wpdb;
 	$wpdb->update(
 		"{$wpdb->prefix}tourmaster_room_order",
 		array(
@@ -489,6 +432,99 @@ function chip_callback_room_status_update() {
 	tourmaster_room_send_email_invoice( $tid );
 
 	exit( 'Callback success' );
+}
+
+// Generic status update function for room payments that determines which payment method was used
+if ( ! function_exists( 'chip_handle_room_status_update' ) ) {
+	function chip_handle_room_status_update( $payment_info, $tid, $order, $is_redirect = false ) {
+		$method_key = isset( $payment_info['method_key'] ) ? $payment_info['method_key'] : 'chip';
+		
+		// Get the appropriate secret key and brand ID for the method
+		$secret_key = trim( tourmaster_get_option( 'room_payment', $method_key . '-secret-key', '' ) );
+		$brand_id   = trim( tourmaster_get_option( 'room_payment', $method_key . '-brand-id', '' ) );
+		
+		// Get processing fee for the specific method
+		$process_fee = trim( tourmaster_get_option( 'room_payment', $method_key . '-processing-fee', 0 ) );
+		$process_fee = absint( wp_unslash( $process_fee ) ) / 100;
+		
+		$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
+		$purchase = $chip->get_payment( $payment_info['id'] );
+
+		if ( $purchase['status'] !== 'paid' ) {
+			if ( $is_redirect ) {
+				wp_safe_redirect( tourmaster_get_template_url( 'room-payment' ) );
+				exit;
+			} else {
+				exit;
+			}
+		}
+
+		$price = $purchase['payment']['amount'] / 100;
+		$price = $price - $process_fee;
+
+		if ( ! empty( $order->currency ) ) {
+			$currency = json_decode( $order->currency, true );
+			$price    = $price / floatval( $currency['exchange-rate'] );
+		}
+
+		$new_payment_info = array(
+			'transaction_id'  => $purchase['id'],
+			'amount'          => $price,
+			'payment_method'  => $method_key,
+			'payment_status'  => $purchase['status'],
+			'submission_date' => current_time( 'mysql' ),
+			'timestamp'       => time(),
+		);
+
+		$payment_infos = json_decode( $order->payment_info, true );
+		
+		foreach ( $payment_infos as $key => $value ) {
+			if ( $value['timestamp'] == $_GET['timestamp'] ) {
+				unset( $payment_infos[ $key ] );
+				break;
+			}
+		}
+
+		$payment_infos = array_values( $payment_infos );
+
+		$payment_infos[] = $new_payment_info;
+		$order_status    = tourmaster_room_payment_order_status( $order->total_price, $payment_infos, true );
+
+		global $wpdb;
+		$wpdb->update(
+			"{$wpdb->prefix}tourmaster_room_order",
+			array(
+				'payment_info' => wp_json_encode( $payment_infos ),
+				'order_status' => $order_status,
+			),
+			array( 'id' => $tid ),
+			array( '%s', '%s' ),
+			array( '%d' )
+		);
+
+		// send an email.
+		if ( $order_status == 'deposit-paid' ) {
+			tourmaster_room_mail_notification( 'deposit-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+			tourmaster_room_mail_notification( 'admin-deposit-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+		} elseif ( $order_status == 'approved' || $order_status == 'online-paid' ) {
+			tourmaster_room_mail_notification( 'payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+			tourmaster_room_mail_notification( 'admin-online-payment-made-mail', $tid, '', array( 'custom' => $new_payment_info ) );
+		}
+		tourmaster_room_send_email_invoice( $tid );
+
+		if ( $is_redirect ) {
+			$success_redirect = add_query_arg(
+				array(
+					'tid'            => $tid,
+					'step'           => 4,
+					'payment_method' => 'paypal',
+				),
+				tourmaster_get_template_url( 'room-payment' )
+			);
+			wp_safe_redirect( $success_redirect );
+			exit;
+		}
+	}
 }
 
 add_filter( 'tourmaster_room_payment_methods', 'add_chip_to_room_payment_methods', 10, 1 );
