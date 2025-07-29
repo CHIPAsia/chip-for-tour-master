@@ -1,9 +1,9 @@
 === CHIP for Tour Master ===
-Contributors: chipasia, wanzulnet
+Contributors: chipasia, wanzulnet, amirulazreen
 Tags: chip
 Requires at least: 6.1
 Tested up to: 6.8
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 Requires PHP: 8.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,8 +28,14 @@ This plugin will enable your Tour Master site to be integrated with CHIP as per 
 
 == Changelog ==
 
-= 1.0.1 - 2025-04-30 =
-* New - Add option for merchant to set icon for Tour checkout
+= 1.1.0 - 2025-07-28 =
+* New - Added support for multiple CHIP payment methods (FPX, FPX Corporate, Card, E-Wallet, Atome, DuitNow QR)
+* New - Added configurable payment method titles for all CHIP payment options
+* New - Added "Accepted Payment Type Logo" configuration for each payment method
+* New - Added support for room booking payment methods
+* Enhancement - Separated CHIP payment into distinct payment methods with specific payment channel restrictions
+* Enhancement - Improved payment method display with configurable titles and logos
+* Enhancement - Unified configuration between tour and room booking payment methods
 
 [See changelog for all versions](https://raw.githubusercontent.com/CHIPAsia/chip-for-tour-master/main/changelog.txt).
 
