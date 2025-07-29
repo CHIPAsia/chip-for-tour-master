@@ -37,9 +37,6 @@ This plugin will enable your Tour Master site to be integrated with CHIP as per 
 * Enhancement - Improved payment method display with configurable titles and logos
 * Enhancement - Unified configuration between tour and room booking payment methods
 
-= 1.0.1 - 2025-04-30 =
-* New - Add option for merchant to set icon for Tour checkout
-
 [See changelog for all versions](https://raw.githubusercontent.com/CHIPAsia/chip-for-tour-master/main/changelog.txt).
 
 == Installation ==
