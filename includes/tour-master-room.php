@@ -122,6 +122,8 @@ if ( ! function_exists( 'chip_create_purchase_room_with_method' ) ) {
 
 				$price = round( floatval( $price ) * 100 );
 
+				$chip = new Chip_Travel_Tour_API( $secret_key, $brand_id );
+
 				$send_params = array(
 					'success_callback' => add_query_arg(
 						array(
@@ -162,6 +164,10 @@ if ( ! function_exists( 'chip_create_purchase_room_with_method' ) ) {
 
 				// Add payment method whitelist if specified
 				if ( ! empty( $payment_method_whitelist ) ) {
+					// Resolve the whitelist so the DuitNow QR group (duitnow_qr/dnqr)
+					// is sent as whatever the merchant actually has, prioritizing dnqr.
+					$payment_method_whitelist = $chip->resolve_duitnow_methods( $payment_method_whitelist, $currency_code, $price );
+
 					$send_params['payment_method_whitelist'] = $payment_method_whitelist;
 				}
 
@@ -177,7 +183,6 @@ if ( ! function_exists( 'chip_create_purchase_room_with_method' ) ) {
 
 				$send_params = apply_filters( 'tourmaster_chip_payment_send_params_room', $send_params, $tid );
 
-				$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
 				$purchase = $chip->create_payment( $send_params );
 
 				if ( ! array_key_exists( 'id', $purchase ) ) {

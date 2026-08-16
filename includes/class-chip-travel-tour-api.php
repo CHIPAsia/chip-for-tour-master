@@ -9,6 +9,17 @@
  */
 class Chip_Travel_Tour_API {
 	/**
+	 * DuitNow QR payment method group.
+	 *
+	 * dnqr is the modern identifier; duitnow_qr is the legacy identifier kept
+	 * for backward compatibility. The group is resolved against the merchant's
+	 * actual /payment_methods/ response at runtime, prioritizing dnqr.
+	 *
+	 * @since 1.1.0
+	 */
+	const DUITNOW_GROUP = array( 'duitnow_qr', 'dnqr' );
+
+	/**
 	 * CHIP Secret Key.
 	 *
 	 * @var $secret_key
@@ -107,6 +118,68 @@ class Chip_Travel_Tour_API {
 			'GET',
 			"/payment_methods/?brand_id={$this->brand_id}&currency={$currency}&language={$language}&amount={$amount}"
 		);
+	}
+
+	/**
+	 * Resolve the configured payment_method_whitelist against the merchant's
+	 * actual /payment_methods/ response, with dnqr-priority for the DuitNow QR group.
+	 *
+	 * Steps:
+	 *   1. Group expansion: any dnqr-group member in the whitelist expands to the full group.
+	 *   2. Cache key: brand + currency + amount-bucket (round to 100-sen steps).
+	 *   3. Try cache. On miss, call /payment_methods/.
+	 *   4. Fallback: return expanded whitelist unchanged if the API fails.
+	 *   5. Intersect with available methods.
+	 *   6. Priority: dnqr wins when both are present.
+	 *   7. Build the final whitelist (original non-group entries + resolved group).
+	 *
+	 * @param array  $whitelist Configured payment_method_whitelist.
+	 * @param string $currency  Order currency code (e.g. 'MYR').
+	 * @param int    $amount    Order total in sen (e.g. 12345 = RM 123.45).
+	 * @return array            Final whitelist to send to CHIP.
+	 */
+	public function resolve_duitnow_methods( $whitelist, $currency, $amount ) {
+		$whitelist = array_values( (array) $whitelist );
+
+		// 1. Group expansion.
+		$has_group_member = count( array_intersect( $whitelist, self::DUITNOW_GROUP ) ) > 0;
+
+		// Short-circuit: a whitelist that does not intersect the dnqr group
+		// is returned untouched (no API call, no group injection).
+		if ( ! $has_group_member ) {
+			return $whitelist;
+		}
+
+		$expanded = array_values( array_unique( array_merge( $whitelist, self::DUITNOW_GROUP ) ) );
+
+		// 2. Cache key: brand + currency + amount-bucket (round to 100-sen steps).
+		$cache_key = 'chip_pm_' . md5( $this->brand_id . '|' . $currency . '|' . intval( $amount / 100 ) );
+
+		// 3. Try cache. If hit, use it. If miss, call /payment_methods/.
+		$available = get_transient( $cache_key );
+		if ( false === $available ) {
+			$response = $this->payment_methods( $currency, '', $amount ); // No language param.
+			if ( ! is_array( $response ) || ! isset( $response['available_payment_methods'] ) ) {
+				// 4. Fallback: return expanded whitelist unchanged.
+				return $expanded;
+			}
+			$available = $response['available_payment_methods'];
+			set_transient( $cache_key, $available, 30 * MINUTE_IN_SECONDS );
+		}
+
+		// 5. Intersect: keep only group members the merchant actually has.
+		$resolved_group = array_values( array_intersect( self::DUITNOW_GROUP, (array) $available ) );
+
+		// 6. Priority: dnqr wins when both are present.
+		if ( in_array( 'dnqr', $resolved_group, true ) ) {
+			$resolved_group = array_values( array_diff( $resolved_group, array( 'duitnow_qr' ) ) );
+		}
+
+		// 7. Build final whitelist: original entries (with group members stripped) + resolved group.
+		$final = array_values( array_diff( $expanded, self::DUITNOW_GROUP ) );
+		$final = array_merge( $final, $resolved_group );
+
+		return $final;
 	}
 
 	public function payment_recurring_methods( $currency, $language, $amount ) {
