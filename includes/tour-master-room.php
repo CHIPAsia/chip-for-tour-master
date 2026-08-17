@@ -50,7 +50,7 @@ if ( ! function_exists( 'chip_card_create_purchase_room' ) ) {
 // E-Wallet Room Payment Creation Function
 if ( ! function_exists( 'chip_ewallet_create_purchase_room' ) ) {
 	function chip_ewallet_create_purchase_room( $ret = '', $tid = '', $pay_full_amount = true ) {
-		return chip_create_purchase_room_with_method( $ret, $tid, $pay_full_amount, 'chip-ewallet', array( 'razer_grabpay', 'razer_shopeepay', 'razer_tng', 'razer_maybankqr' ) );
+		return chip_create_purchase_room_with_method( $ret, $tid, $pay_full_amount, 'chip-ewallet', array( 'razer_grabpay', 'shopee_pay', 'razer_tng', 'razer_maybankqr' ) );
 	}
 }
 

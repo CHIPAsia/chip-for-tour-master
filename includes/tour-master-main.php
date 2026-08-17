@@ -894,7 +894,7 @@ if ( ! function_exists( 'chip_card_create_purchase' ) ) {
 // E-Wallet Payment Creation Function
 if ( ! function_exists( 'chip_ewallet_create_purchase' ) ) {
 	function chip_ewallet_create_purchase() {
-		$ret = chip_create_purchase_with_method( 'chip-ewallet', array( 'razer_grabpay', 'razer_shopeepay', 'razer_tng', 'razer_maybankqr' ) );
+		$ret = chip_create_purchase_with_method( 'chip-ewallet', array( 'razer_grabpay', 'shopee_pay', 'razer_tng', 'razer_maybankqr' ) );
 		die( wp_json_encode( $ret ) );
 	}
 }
