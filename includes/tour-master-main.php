@@ -894,7 +894,7 @@ if ( ! function_exists( 'chip_card_create_purchase' ) ) {
 // E-Wallet Payment Creation Function
 if ( ! function_exists( 'chip_ewallet_create_purchase' ) ) {
 	function chip_ewallet_create_purchase() {
-		$ret = chip_create_purchase_with_method( 'chip-ewallet', array( 'razer_grabpay', 'razer_shopeepay', 'razer_tng', 'razer_maybankqr' ) );
+		$ret = chip_create_purchase_with_method( 'chip-ewallet', array( 'razer_grabpay', 'shopee_pay', 'razer_tng', 'razer_maybankqr' ) );
 		die( wp_json_encode( $ret ) );
 	}
 }
@@ -959,6 +959,12 @@ if ( ! function_exists( 'chip_create_purchase_with_method' ) ) {
 			} else {
 				$price = round( floatval( $price ) * 100 );
 
+				$chip = new Chip_Travel_Tour_API( $secret_key, $brand_id );
+
+				// Resolve the whitelist so the DuitNow QR group (duitnow_qr/dnqr)
+				// is sent as whatever the merchant actually has, prioritizing dnqr.
+				$payment_method_whitelist = $chip->resolve_duitnow_methods( $payment_method_whitelist, $currency_code, $price );
+
 				$send_params = array(
 					'success_callback' => add_query_arg(
 						array(
@@ -1010,7 +1016,6 @@ if ( ! function_exists( 'chip_create_purchase_with_method' ) ) {
 
 				$send_params = apply_filters( 'tourmaster_chip_payment_send_params_tour', $send_params, $tid );
 
-				$chip     = new Chip_Travel_Tour_API( $secret_key, $brand_id );
 				$purchase = $chip->create_payment( $send_params );
 
 				if ( ! array_key_exists( 'id', $purchase ) ) {
